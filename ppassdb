@@ -1,0 +1,60 @@
+#!/bin/sh
+if [ $# -eq 0 ] ; then 
+	echo "Usage:" && echo "$0 [operation] [option] [input_file]"
+	echo "Type \"$0 help\" for more"
+else
+	#Checking for adequate dependencies
+	if ! command -v gpg > /dev/null; then echo "gnupg is not installed"; exit 127; fi
+	
+	outputOnly(){
+		clear && head -n 1 "$directory"/"$fileName" && echo
+	}
+
+	copyToClipboard(){
+		# Clipboards by OS'
+		command -v xclip > /dev/null && clipboard="xclip -selection clip"
+		command -v pbcopy > /dev/null && clipboard="pbcopy"
+		[ -d "/c/Windows" ] && command -v clip.exe > /dev/null && clipboard="clip.exe"
+
+		[ "$success" -eq 0 ] && [ -n "$clipboard" ] && \
+		head -n 1 "$directory/$fileName" | $clipboard &&\
+		echo Copied to clipboard sucessfully && \
+		rm "$directory/$fileName" && \
+		echo "Clearing the clipboard in 15 seconds" && \
+		sleep 15 && $clipboard < /dev/null && echo &
+
+		# If the script doesn't detect any clipboard programs
+		[ "$success" -eq 0 ] && [ -z "$clipboard" ] && \
+		echo "xclip is not installed" && \
+		trap  'rm "$directory/$fileName" ; exit' INT && \
+		printf "Do you want to read the file here? [y/N]: " && read -r prompt && \
+		[ "$prompt" = y ] || [ "$prompt" = Y ] && outputOnly && \
+		rm "$directory/$fileName"
+	}
+
+	decryption(){
+		# File name and temporary folder location variables
+		fileName=$(awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null | md5sum | head -c 32)
+		[ -z "$TEMP" ] && TEMP="/tmp"
+		if [ -w "$TEMP" ]; then directory="$TEMP"
+		elif [ -w "$XDG_CACHE_HOME" ]; then directory="$XDG_CACHE_HOME"
+		elif [ -w "$HOME/.cache"  ]; then directory="$HOME/.cache"
+		elif [ -w "$HOME" ]; then directory="$HOME"
+		elif [ -w "." ]; then directory=.
+		else echo "You don't have any writable directories"; exit 1; fi
+		for lastArg in "$@"; do :; done
+		if [ ! -f "$lastArg" ]; then echo "There is no file input"; exit 1; fi
+		case $2 in
+			toclip) gpg --no-symkey-cache --output "$directory/$fileName" "$lastArg" ; success=$? ; copyToClipboard "$@" ;;
+			toterm) gpg --no-symkey-cache --output "$directory/$fileName" "$lastArg" ; success=$? ; outputOnly ;;
+			*) echo "No option specified for decrytion" && exit 1;;
+		esac
+	}
+
+	case "$1" in
+		decrypt) decryption "$@" ;;
+		encrypt) echo "Work in Progress" ;;
+		help) echo "I'll do the documentation later lol" ;;
+		*) echo "Unknown option was specified" ;;
+	esac
+fi	
