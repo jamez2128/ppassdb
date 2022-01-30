@@ -22,7 +22,7 @@ else
 		doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
 		termuxOpenURL="content://com.android.externalstorage.documents/document/primary%3A"
 		javaScriptPath=$(mktemp -u).html
-		fileNameOnly=${javaScriptPath#/tmp/}
+		fileNameOnly=${javaScriptPath##*/}
 		OS=$(uname -o)
 		if [ "$OS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
 			javaScriptPath="/storage/emulated/0/${fileNameOnly#/tmp/}"
