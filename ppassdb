@@ -15,19 +15,55 @@ else
 	#Checking for adequate dependencies
 	if ! command -v gpg > /dev/null 2>&1 ; then echo "gnupg is not installed"; exit 127; fi
 	
+	#A workaround if script failed to take care of the clipboard
+	makeJavaScript() {
+		deleteJavaScriptTime=60
+		doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
+		if [ "$(uname -o)" = "Android" ] && [ -w "/storage/sdcard0" ] ; then
+			javaScriptPath="/storage/sdcard0"
+		elif [ "$(uname -o)" = "Android" ] && [ -w "/storage/self/primary" ] ; then
+			javaScriptPath="/storage/self/primary"
+		elif [ "$clipboard" = "$termuxClip" ] ; then
+			echo "You don't have write permissions in Termux" && [ -z "$showTextOption" ] && cleanUp "$@" && exit 1
+		elif [ ! -d "/storage/sdcard0" ] || [ ! -d "/storage/emulated/0" ] ; then
+			javaScriptPath=$(mktemp -u).html
+		fi
+		[ -n "$javaScriptPath" ] && {
+                echo "<html>"
+                echo "<head><title> Copy to system clipboard </title></head>"
+                echo "<script>"
+                echo "function copyToClipboard() { navigator.clipboard.writeText(\"$doubleQuoteFriendly\"); }"
+                echo "</script>"
+                echo "<body>"
+                echo "<p> Click <button onclick=copyToClipboard()> Copy </button> to put decrypted text to Clipboard </p>"
+                echo "</body>"
+                echo "</html>"
+		} > "$javaScriptPath"
+		[ -n "$javaScriptPath" ] && {
+		echo "Your decrypted file is in file://$javaScriptPath"
+		echo "This file will be deleted in $deleteJavaScriptTime seconds"
+		sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
+		}
+	}
+
 	cleanUp(){
 		rm "$tmpFile"
 	}
 
 	showText(){
-		[ "$success" -eq 0 ] && \
 		echo && head -n 1 "$tmpFile" && echo && echo
 	}
 
 	clearClipboard(){
+		clearTime=15
 		[ "$success" -eq 0 ] && [ -n "$clipboard" ] && \
-		echo "Clearing the clipboard in 15 seconds" && \
-		sleep 15 && $clipboard < /dev/null &
+		echo "Clearing the clipboard in $clearTime seconds" && \
+		sleep $clearTime && $clipboard < /dev/null &
+	}
+
+	copyToClipboard(){
+		timeout 3 head -n 1 "$tmpFile" | $clipboard && echo "Copied to Clipboard sucessfully" && \
+		[ -n "$clearClipOption" ] && $clearClipOption
 	}
 
 	decryption(){
@@ -38,30 +74,37 @@ else
 
 		# Clipboards by OS'
 		[ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || \
-		command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clip"
+		command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
+		termuxClip="termux-clipboard-set"
+		command -v termux-clipboard-set > /dev/null 2>&1 && clipboard="$termuxClip"
 		command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy"
 		[ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe"
-
-		[ "$success" -eq 0 ] && [ -n "$clipboard" ] && \
-		head -n 1 "$tmpFile" | $clipboard &&\
-		echo Copied to clipboard sucessfully 
+		
+		[ $success -eq 0 ] && [ -z "$javaScriptOption" ] && [ -n "$clipboard" ] && copyToClipboard "$@" 
+		[ $? -eq 124 ] && [ "$clipboard" = "$termuxClip"  ] && \
+		{ echo "Termux API is not installed"
+		echo "Install it on F-droid or Google Play Store to use the system clipboard feature"
+		[ -z "$showTextOption" ] && exit 1 ; } && \
+		echo "There is something wrong with the system clipboard" && { [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] ; } && \
+		cleanUp "$@" && exit 1
 
 		# If the script doesn't detect any clipboard programs
-		[ "$success" -eq 0 ] && [ -z "$clipboard" ] && \
-		echo "Could not find any clipboards" && \
-		[ -z "$showTextOption" ] && cleanUp "$@" && exit 127
-		$clearClipOption
-		$showTextOption
+		[ "$success" -eq 0 ] && [ -z "$clipboard" ] && echo "Could not find any clipboards" && \
+		{ [ -z "$showTextOption" ] || [ -z "$javaScriptOption" ] ; } && cleanUp "$@" && exit 127
+
+		[ $success -eq 0 ] && [ -n "$javaScriptOption" ] && $javaScriptOption
+		[ $success -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
 	}
 	numOfOperations=0
 	OPTIND=1
-	while getopts ":hEDcsg:" OPTION; do
+	while getopts ":hEDcsj" OPTION; do
 		case $OPTION in
 			h) help "$@" ; exit ;;
 			D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
 			E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
 			c) clearClipOption='clearClipboard "$@"' ;;
 			s) showTextOption='showText "$@"' ;;
+			j) javaScriptOption='makeJavaScript "$@"' ;;
 			*) echo "-$OPTARG is a unknown option" && exit 1 ;;
 		esac
 	done
