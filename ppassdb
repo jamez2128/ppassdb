@@ -55,7 +55,7 @@ else
 	}
 
 	showText(){
-		head -n 1 "$tmpFile" && echo && echo
+		echo && head -n 1 "$tmpFile" && echo && echo
 	}
 
 	clearClipboard(){
@@ -94,7 +94,7 @@ else
 
 		# If the script doesn't detect any clipboard programs
 		[ "$success" -eq 0 ] && [ -z "$clipboard" ] && echo "Could not find any clipboards" && \
-		{ [ -z "$showTextOption" ] || [ -z "$javaScriptOption" ] ; } && cleanUp "$@" && exit 127
+		[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && cleanUp "$@" && exit 127
 
 		[ $success -eq 0 ] && [ -n "$javaScriptOption" ] && $javaScriptOption
 		[ $success -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
