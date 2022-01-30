@@ -1,5 +1,6 @@
 #!/bin/sh
 
+#justInCase=$(awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null | md5sum | head -c 32).html
 noOperation(){
 	echo "Usage: $0 [operations] [options] [input_file]"
 	echo "Type \"$0 --help\" for more"
@@ -19,14 +20,15 @@ else
 	makeJavaScript() {
 		deleteJavaScriptTime=60
 		doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
-		if [ "$(uname -o)" = "Android" ] && [ -w "/storage/sdcard0" ] ; then
-			javaScriptPath="/storage/sdcard0"
-		elif [ "$(uname -o)" = "Android" ] && [ -w "/storage/self/primary" ] ; then
-			javaScriptPath="/storage/self/primary"
-		elif [ "$clipboard" = "$termuxClip" ] ; then
+		termuxOpenURL="content://com.android.externalstorage.documents/document/primary%3A"
+		javaScriptPath=$(mktemp -u).html
+		fileNameOnly=${javaScriptPath#/tmp/}
+		OS=$(uname -o)
+		if [ "$OS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
+			javaScriptPath="/storage/emulated/0/${fileNameOnly#/tmp/}"
+		elif [ "$OS" = "Android" ] ; then
+			javaScriptPath=
 			echo "You don't have write permissions in Termux" && [ -z "$showTextOption" ] && cleanUp "$@" && exit 1
-		elif [ ! -d "/storage/sdcard0" ] || [ ! -d "/storage/emulated/0" ] ; then
-			javaScriptPath=$(mktemp -u).html
 		fi
 		[ -n "$javaScriptPath" ] && {
                 echo "<html>"
@@ -40,6 +42,7 @@ else
                 echo "</html>"
 		} > "$javaScriptPath"
 		[ -n "$javaScriptPath" ] && {
+		[ "$OS" = "Android" ] && termux-open --chooser "$termuxOpenURL$fileNameOnly"
 		echo "Your decrypted file is in file://$javaScriptPath"
 		echo "This file will be deleted in $deleteJavaScriptTime seconds"
 		sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
@@ -51,7 +54,7 @@ else
 	}
 
 	showText(){
-		echo && head -n 1 "$tmpFile" && echo && echo
+		head -n 1 "$tmpFile" && echo && echo
 	}
 
 	clearClipboard(){
