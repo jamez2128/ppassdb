@@ -16,7 +16,8 @@ else
 	#Checking for adequate dependencies
 	if ! command -v gpg > /dev/null 2>&1 ; then echo "gnupg is not installed"; exit 127; fi
 	
-	#A workaround if script failed to take care of the clipboard
+	#A workaround if the script failed to take care of the clipboard
+	#Good Alternative if you don't wanna use the -s option
 	makeJavaScript() {
 		deleteJavaScriptTime=60
 		doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
