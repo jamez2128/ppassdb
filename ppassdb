@@ -20,7 +20,6 @@ else
 	makeJavaScript() {
 		deleteJavaScriptTime=60
 		doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
-		termuxOpenURL="content://com.android.externalstorage.documents/document/primary%3A"
 		javaScriptPath=$(mktemp -u).html
 		fileNameOnly=${javaScriptPath##*/}
 		OS=$(uname -o)
@@ -42,7 +41,8 @@ else
                 echo "</html>"
 		} > "$javaScriptPath"
 		[ -n "$javaScriptPath" ] && {
-		[ "$OS" = "Android" ] && termux-open --chooser "$termuxOpenURL$fileNameOnly"
+		[ ! "$OS" = "Android" ] && command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1
+		[ -d "/c/Windows" ] && start "$javaScriptPath"
 		echo "Your decrypted file is in file://$javaScriptPath"
 		echo "This file will be deleted in $deleteJavaScriptTime seconds"
 		sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
