@@ -31,21 +31,23 @@ makeJavaScript() {
 		javaScriptPath=
 		echo "You don't have write permissions in Termux" && [ -z "$showTextOption" ] && cleanUp "$@" && exit 1
 	fi
-	[ -n "$javaScriptPath" ] && {
-			echo "<html>"
-			echo "<head><title> Copy to system clipboard </title></head>"
-			echo "<script>"
-			echo "function copyToClipboard() { navigator.clipboard.writeText(\"$doubleQuoteFriendly\"); }"
-			echo "</script>"
-			echo "<body>"
-			echo "<p> Click <button onclick=copyToClipboard()> Copy </button> to put decrypted text to Clipboard </p>"
-			echo "</body>"
-			echo "</html>"
+	[ -n "$javaScriptPath" ] && { cat << EOF
+<html>
+<head><title> Copy to system clipboard </title></head>
+<script>
+function copyToClipboard() { navigator.clipboard.writeText("$doubleQuoteFriendly"); }
+</script>
+<body>
+<p> Click <button onclick=copyToClipboard()> Copy </button> to put decrypted text to Clipboard </p>
+</body>
+</html>
+EOF
 	} > "$javaScriptPath"
 	[ -n "$javaScriptPath" ] && {
 	[ ! "$OS" = "Android" ] && command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1
 	[ -d "/c/Windows" ] && start "$javaScriptPath"
 	echo "Your decrypted file is in file://$javaScriptPath"
+	[ "$OS" = "Android" ] && echo "It will be in the root of your Internal Storage"
 	echo "This file will be deleted in $deleteJavaScriptTime seconds"
 	sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
 	}
@@ -123,4 +125,3 @@ case "$operation" in
 esac
 
 [ -n "$success" ] && [ $success -eq 0 ] && cleanUp "$@"
-
