@@ -12,6 +12,7 @@ help(){
 
 if [ $# -eq 0 ] ; then noOperation "$@"; exit
 elif [ "$(echo "$*" | sed "s/ /\\n/g" | grep \\--help)" = "--help" ] ; then help "$@" ; exit
+fi	
 
 #Checking for adequate dependencies
 if ! command -v gpg > /dev/null 2>&1 ; then echo "gnupg is not installed"; exit 127; fi
@@ -123,4 +124,3 @@ esac
 
 [ -n "$success" ] && [ $success -eq 0 ] && cleanUp "$@"
 
-fi	
