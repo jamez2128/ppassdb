@@ -1,6 +1,10 @@
 #!/bin/sh
-
 #justInCase=$(awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null | md5sum | head -c 32).html
+
+#Configurations
+clearClipboardTime=15
+deleteJavaScriptTime=30
+
 noOperation(){
  	echo "Usage: $0 [operations] [options] [input_file]"
 	echo "Type \"$0 --help\" for more"
@@ -10,9 +14,8 @@ help(){
 	echo "I'll do the documentaion later lol"
 }
 
-if [ $# -eq 0 ] ; then noOperation "$@"; exit
-elif [ "$(echo "$*" | sed "s/ /\\n/g" | grep \\--help)" = "--help" ] ; then help "$@" ; exit
-fi	
+[ $# -eq 0 ] && noOperation "$@" && exit
+[ "$(echo "$*" | sed "s/ /\\n/g" | grep \\--help)" = "--help" ] && help "$@" && exit	
 
 #Checking for adequate dependencies
 if ! command -v gpg > /dev/null 2>&1 ; then echo "gnupg is not installed"; exit 127; fi
@@ -20,7 +23,6 @@ if ! command -v gpg > /dev/null 2>&1 ; then echo "gnupg is not installed"; exit 
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
-	deleteJavaScriptTime=60
 	doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
 	javaScriptPath=$(mktemp -u).html
 	fileNameOnly=${javaScriptPath##*/}
@@ -28,17 +30,20 @@ makeJavaScript() {
 	if [ "$OS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
 		javaScriptPath="/storage/emulated/0/${fileNameOnly#/tmp/}"
 	elif [ "$OS" = "Android" ] ; then
-		javaScriptPath=
-		echo "You don't have write permissions in Termux" && [ -z "$showTextOption" ] && cleanUp "$@" && exit 1
+	javaScriptPath= 
+	echo "You don't have write permissions in Termux" 
+	[ -z "$showTextOption" ] && cleanUp "$@" && exit 1
 	fi
 	[ -n "$javaScriptPath" ] && { cat << EOF
 <html>
-<head><title> Copy to system clipboard </title></head>
-<script>
-function copyToClipboard() { navigator.clipboard.writeText("$doubleQuoteFriendly"); }
-</script>
+	<head>
+	<title> Copy to system clipboard </title>
+	<script>
+		function copyToClipboard() { navigator.clipboard.writeText("$doubleQuoteFriendly"); }
+	</script>
+</head>
 <body>
-<p> Click <button onclick=copyToClipboard()> Copy </button> to put decrypted text to Clipboard </p>
+	<p> Click <button onclick=copyToClipboard()> Copy </button> to put decrypted text to Clipboard </p>
 </body>
 </html>
 EOF
@@ -47,7 +52,7 @@ EOF
 	[ ! "$OS" = "Android" ] && command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1
 	[ -d "/c/Windows" ] && start "$javaScriptPath"
 	echo "Your decrypted file is in file://$javaScriptPath"
-	[ "$OS" = "Android" ] && echo "It will be in the root of your Internal Storage"
+	[ "$OS" = "Android" ] && echo "It will be in the your Internal Storage"
 	echo "This file will be deleted in $deleteJavaScriptTime seconds"
 	sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
 	}
@@ -62,10 +67,9 @@ showText(){
 }
 
 clearClipboard(){
-	clearTime=15
 	[ "$success" -eq 0 ] && [ -n "$clipboard" ] && \
-	echo "Clearing the clipboard in $clearTime seconds" && \
-	sleep $clearTime && $clipboard < /dev/null &
+	echo "Clearing the clipboard in $clearClipboardTime seconds" && \
+	sleep $clearClipboardTime && $clipboard < /dev/null &
 }
 
 copyToClipboard(){
@@ -92,7 +96,7 @@ decryption(){
 	{ echo "Termux API is not installed"
 	echo "Install it on F-droid or Google Play Store to use the system clipboard feature"
 	[ -z "$showTextOption" ] && exit 1 ; } && \
-	echo "There is something wrong with the system clipboard" && { [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] ; } && \
+	echo "There is something wrong with the system clipboard" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && \
 	cleanUp "$@" && exit 1
 
 	# If the script doesn't detect any clipboard programs
