@@ -80,7 +80,7 @@ copyToClipboard(){
 decryption(){
 	tmpFile=$(mktemp -u)
 	for lastArg in "$@"; do :; done
-	if [ ! -f "$lastArg" ]; then echo "There is no input file"; exit 1; fi
+	[ ! -f "$lastArg" ] && echo "There is no input file" && exit 1;
 	gpg --no-symkey-cache --output "$tmpFile" "$lastArg" ; success=$?
 
 	# Clipboards by OS'
