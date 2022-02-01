@@ -18,7 +18,7 @@ help(){
 [ "$(echo "$*" | sed "s/ /\\n/g" | grep \\--help)" = "--help" ] && help "$@" && exit	
 
 #Checking for adequate dependencies
-if ! command -v gpg > /dev/null 2>&1 ; then echo "gnupg is not installed"; exit 127; fi
+! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127;
 
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
