@@ -78,15 +78,17 @@ copyToClipboard(){
 }
 
 decryption(){
+	[ ! -f "$lastArg" ] && echo "There is no input file" && exit 1;
 	tmpFile=$(mktemp -u)
 	for lastArg in "$@"; do :; done
-	[ ! -f "$lastArg" ] && echo "There is no input file" && exit 1;
 	gpg --no-symkey-cache --output "$tmpFile" "$lastArg" ; success=$?
 
 	# Clipboards by OS'
 	[ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || \
 	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
 	termuxClip="termux-clipboard-set"
+	command -v  > /dev/null 2>&1 && clipboard="$termuxClip"
+	[ -e "/dev/clipboard" ] && clipboard="/dev/clipboard"
 	command -v termux-clipboard-set > /dev/null 2>&1 && clipboard="$termuxClip"
 	command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy"
 	[ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe"
@@ -95,7 +97,7 @@ decryption(){
 	[ $? -eq 124 ] && [ "$clipboard" = "$termuxClip"  ] && \
 	{ echo "Termux API is not installed"
 	echo "Install it on F-droid or Google Play Store to use the system clipboard feature"
-	[ -z "$showTextOption" ] && exit 1 ; } && \
+	[ -z "$showTextOption" ] && exit 2 ; } && \
 	echo "There is something wrong with the system clipboard" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && \
 	cleanUp "$@" && exit 1
 
