@@ -107,7 +107,7 @@ decryption(){
 	{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || \
 	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
 	} || \
-	{ command -v  > /dev/null 2>&1 && clipboard="$termuxClip"
+	{ command -v "$termuxClip" > /dev/null 2>&1 && clipboard="$termuxClip"
 	} || \
 	{ command -v termux-clipboard-set > /dev/null 2>&1 && clipboard="$termuxClip"
 	} || \
