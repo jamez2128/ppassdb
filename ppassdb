@@ -36,7 +36,7 @@ fi
 
 listdb(){
 	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
-	ls --color="auto" -R
+	printf "ID's: " ; ls --color="auto" ; echo ; ls --color="auto" *
 }
 
 #A workaround if the script failed to take care of the clipboard
