@@ -20,6 +20,25 @@ help(){
 #Checking for adequate dependencies
 ! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127;
 
+defineHome(){
+if [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then 
+	ppassdbHOME="$APPDATA/ppassdb"
+elif [ -n "$XDG_DATA_HOME" ] ; then
+	ppassdbHOME="$XDG_DATA_HOME/ppassdb"
+elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share" ] ; then
+	XDG_DATA_HOME="$HOME/.local/share"
+elif [ -z "$XDG_DATA_HOME" ] && [ ! -d "$HOME/.local/share" ] ; then
+	ppassdbHOME="$HOME/.ppassdb"
+else
+	ppassdbHOME="$(pwd)"
+fi
+}
+
+listdb(){
+	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
+	ls --color="auto" -R
+}
+
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
@@ -78,20 +97,26 @@ copyToClipboard(){
 }
 
 decryption(){
-	[ ! -f "$lastArg" ] && echo "There is no input file" && exit 1;
-	tmpFile=$(mktemp -u)
 	for lastArg in "$@"; do :; done
-	gpg --no-symkey-cache --output "$tmpFile" "$lastArg" ; success=$?
+	[ ! -f "$ppassdbHOME/$lastArg" ] && echo "There is no input file" && exit 1;
+	tmpFile=$(mktemp -u)
+	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$lastArg" ; success=$?
 
 	# Clipboards by OS'
-	[ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || \
-	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
 	termuxClip="termux-clipboard-set"
-	command -v  > /dev/null 2>&1 && clipboard="$termuxClip"
-	[ -e "/dev/clipboard" ] && clipboard="/dev/clipboard"
-	command -v termux-clipboard-set > /dev/null 2>&1 && clipboard="$termuxClip"
-	command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy"
-	[ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe"
+	{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || \
+	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
+	} || \
+	{ command -v  > /dev/null 2>&1 && clipboard="$termuxClip"
+	} || \
+	{ [ -e "/dev/clipboard" ] && clipboard="/dev/clipboard"
+	} || \
+	{ command -v termux-clipboard-set > /dev/null 2>&1 && clipboard="$termuxClip"
+	} || \
+	{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy"
+	} || \
+	{ [ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe"
+	}
 	
 	[ $success -eq 0 ] && [ -z "$javaScriptOption" ] && [ -n "$clipboard" ] && copyToClipboard "$@" 
 	[ $? -eq 124 ] && [ "$clipboard" = "$termuxClip"  ] && \
@@ -110,11 +135,16 @@ decryption(){
 }
 numOfOperations=0
 OPTIND=1
-while getopts ":hEDcsj" OPTION; do
+
+[ -z "$ppassdbHOME" ] && defineHome "$@"
+[ ! -d "$ppassdbHOME" ] && mkdir -p "$ppassdbHOME"
+
+while getopts ":hEDLcsj" OPTION; do
 	case $OPTION in
 		h) help "$@" ; exit ;;
 		D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
 		E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
+		L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
 		c) clearClipOption='clearClipboard "$@"' ;;
 		s) showTextOption='showText "$@"' ;;
 		j) javaScriptOption='makeJavaScript "$@"' ;;
@@ -127,6 +157,7 @@ done
 case "$operation" in
 	decrypt) decryption "$@" ;;
 	encrypt) echo "Work in Progress" ;;
+	list) listdb "$@" ;;
 	*) echo "No operation was specified" ; noOperation "$@" ;;
 esac
 
