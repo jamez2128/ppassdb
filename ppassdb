@@ -88,7 +88,7 @@ showText(){
 clearClipboard(){
 	[ "$success" -eq 0 ] && [ -n "$clipboard" ] && \
 	echo "Clearing the clipboard in $clearClipboardTime seconds" && \
-	sleep $clearClipboardTime && /dev/null && $clipboard &
+	sleep $clearClipboardTime && /dev/null | $clipboard &
 }
 
 copyToClipboard(){
