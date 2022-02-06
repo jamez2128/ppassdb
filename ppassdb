@@ -36,7 +36,7 @@ fi
 
 listdb(){
 	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
-	printf "ID's: " ; ls --color="auto" ; echo ; ls --color="auto" *
+	printf "ID's: " && ls --color="auto" && echo && ls --color="auto" -- *
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -88,7 +88,7 @@ showText(){
 clearClipboard(){
 	[ "$success" -eq 0 ] && [ -n "$clipboard" ] && \
 	echo "Clearing the clipboard in $clearClipboardTime seconds" && \
-	sleep $clearClipboardTime && $clipboard < /dev/null &
+	sleep $clearClipboardTime && /dev/null && $clipboard &
 }
 
 copyToClipboard(){
@@ -108,8 +108,6 @@ decryption(){
 	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
 	} || \
 	{ command -v  > /dev/null 2>&1 && clipboard="$termuxClip"
-	} || \
-	{ [ -e "/dev/clipboard" ] && clipboard="/dev/clipboard"
 	} || \
 	{ command -v termux-clipboard-set > /dev/null 2>&1 && clipboard="$termuxClip"
 	} || \
