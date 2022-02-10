@@ -1,5 +1,4 @@
 #!/bin/sh
-#justInCase=$(awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null | md5sum | head -c 32).html
 
 #Configurations
 clearClipboardTime=15
@@ -15,7 +14,7 @@ help(){
 }
 
 [ $# -eq 0 ] && noOperation "$@" && exit
-[ "$(echo "$*" | sed "s/ /\\n/g" | grep \\--help)" = "--help" ] && help "$@" && exit	
+echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exit	
 
 #Checking for adequate dependencies
 ! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127;
@@ -35,8 +34,8 @@ fi
 }
 
 listdb(){
-	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
-	printf "ID's: " && ls --color="auto" && echo && ls --color="auto" -- *
+	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } &&
+	printf "ID's: " && ls --color="auto" && echo && ls --color="auto" -- * || echo "There are no encrypted files"
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -92,16 +91,6 @@ clearClipboard(){
 }
 
 copyToClipboard(){
-	timeout 3 head -n 1 "$tmpFile" | $clipboard && echo "Copied to Clipboard sucessfully" && \
-	[ -n "$clearClipOption" ] && $clearClipOption
-}
-
-decryption(){
-	for lastArg in "$@"; do :; done
-	[ ! -f "$ppassdbHOME/$lastArg" ] && echo "There is no input file" && exit 1;
-	tmpFile=$(mktemp -u)
-	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$lastArg" ; success=$?
-
 	# Clipboards by OS'
 	termuxClip="termux-clipboard-set"
 	{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || \
@@ -109,27 +98,55 @@ decryption(){
 	} || \
 	{ command -v "$termuxClip" > /dev/null 2>&1 && clipboard="$termuxClip"
 	} || \
-	{ command -v termux-clipboard-set > /dev/null 2>&1 && clipboard="$termuxClip"
-	} || \
 	{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy"
 	} || \
 	{ [ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe"
 	}
-	
-	[ $success -eq 0 ] && [ -z "$javaScriptOption" ] && [ -n "$clipboard" ] && copyToClipboard "$@" 
+
+	# If the script doesn't detect any clipboard programs
+	[ -z "$clipboard" ] && echo "Could not find any clipboards" && \
+	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && cleanUp "$@" && exit 127
 	[ $? -eq 124 ] && [ "$clipboard" = "$termuxClip"  ] && \
 	{ echo "Termux API is not installed"
 	echo "Install it on F-droid or Google Play Store to use the system clipboard feature"
-	[ -z "$showTextOption" ] && exit 2 ; } && \
+	[ -z "$showTextOption" ] && exit 1 ; } && \
 	echo "There is something wrong with the system clipboard" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && \
 	cleanUp "$@" && exit 1
+	timeout 3 head -n 1 "$tmpFile" | $clipboard && echo "Copied to Clipboard sucessfully" && \
+	[ -n "$clearClipOption" ] && $clearClipOption
+	[ "$success" -eq 0 ] && [ -n "$javaScriptOption" ] && $javaScriptOption
+	[ "$success" -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
 
-	# If the script doesn't detect any clipboard programs
-	[ "$success" -eq 0 ] && [ -z "$clipboard" ] && echo "Could not find any clipboards" && \
-	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && cleanUp "$@" && exit 127
+}
 
-	[ $success -eq 0 ] && [ -n "$javaScriptOption" ] && $javaScriptOption
-	[ $success -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
+generateRandomText(){
+	awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null | md5sum | head -c 32 > "$tmpFile"
+}
+
+encryption(){
+	tmpFile=$(mktemp)
+	[ -z "$fileName" ] && echo "No name was specified. Please use -n option" && exit 1
+	[ -z "$iD" ] && echo "No ID or user was specified. Please use -i option" && exit 1
+	[ ! -d "$iD" ] && mkdir -p "$ppassdbHOME/$iD"
+	if [ -n "$generateRandomTextOption" ]; then
+		$generateRandomTextOption
+	else
+		printf "Enter text to encrypt: " && read -r textToEncrypt
+		printf "Enter text again: " && read -r confirmText
+		[ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | sed -z "s/\n//g" > "$tmpFile" || \
+		{ echo "Texts do not match" && exit 1 ; }
+	fi
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$ppassdbHOME/$iD/$fileName" "$tmpFile" ; success=$?
+	copyToClipboard "$@"
+}
+
+decryption(){
+	tmpFile=$(mktemp -u)
+	for lastArg in "$@"; do :; done
+	[ ! -f "$ppassdbHOME/$lastArg" ] && echo "There is no input file" && exit 1;
+	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$lastArg" ; success=$?
+
+	[ $success -eq 0 ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@" 
 }
 numOfOperations=0
 OPTIND=1
@@ -137,7 +154,7 @@ OPTIND=1
 [ -z "$ppassdbHOME" ] && defineHome "$@"
 [ ! -d "$ppassdbHOME" ] && mkdir -p "$ppassdbHOME"
 
-while getopts ":hEDLcsj" OPTION; do
+while getopts ":hEDLcsji:n:g" OPTION; do
 	case $OPTION in
 		h) help "$@" ; exit ;;
 		D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
@@ -146,6 +163,9 @@ while getopts ":hEDLcsj" OPTION; do
 		c) clearClipOption='clearClipboard "$@"' ;;
 		s) showTextOption='showText "$@"' ;;
 		j) javaScriptOption='makeJavaScript "$@"' ;;
+		i) iD="$OPTARG" ;;
+		n) fileName="$OPTARG" ;;
+		g) generateRandomTextOption='generateRandomText "$@"' ;;
 		*) echo "-$OPTARG is a unknown option" && exit 1 ;;
 	esac
 done
@@ -154,7 +174,7 @@ done
 
 case "$operation" in
 	decrypt) decryption "$@" ;;
-	encrypt) echo "Work in Progress" ;;
+	encrypt) encryption "$@" ;;
 	list) listdb "$@" ;;
 	*) echo "No operation was specified" ; noOperation "$@" ;;
 esac
