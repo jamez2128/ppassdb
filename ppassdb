@@ -3,6 +3,7 @@
 #Configurations
 clearClipboardTime=15
 deleteJavaScriptTime=30
+#ppassdbHOME=. #Uncomment to override the script's home directory
 
 noOperation(){
  	echo "Usage: $0 [operations] [options] [input_file]"
@@ -36,6 +37,11 @@ fi
 listdb(){
 	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } &&
 	printf "ID's: " && ls --color="auto" && echo && ls --color="auto" -- * || echo "There are no encrypted files"
+}
+
+checkArgs(){
+	[ -z "$iD" ] && echo "No ID or user was specified. Please use -i option" && exit 1
+	[ -z "$fileName" ] && echo "No name was specified. Please use -n option" && exit 1
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -125,8 +131,7 @@ generateRandomText(){
 
 encryption(){
 	tmpFile=$(mktemp)
-	[ -z "$fileName" ] && echo "No name was specified. Please use -n option" && exit 1
-	[ -z "$iD" ] && echo "No ID or user was specified. Please use -i option" && exit 1
+	checkArgs "$@"
 	[ ! -d "$iD" ] && mkdir -p "$ppassdbHOME/$iD"
 	if [ -n "$generateRandomTextOption" ]; then
 		$generateRandomTextOption
@@ -142,10 +147,8 @@ encryption(){
 
 decryption(){
 	tmpFile=$(mktemp -u)
-	for lastArg in "$@"; do :; done
-	[ ! -f "$ppassdbHOME/$lastArg" ] && echo "There is no input file" && exit 1;
-	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$lastArg" ; success=$?
-
+	checkArgs "$@"
+	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$iD/$fileName" ; success=$?
 	[ $success -eq 0 ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@" 
 }
 numOfOperations=0
@@ -170,7 +173,7 @@ while getopts ":hEDLcsji:n:g" OPTION; do
 	esac
 done
 
-[ $numOfOperations -gt 1 ] && echo "-E and -D options shouldn't be used together " && exit 1
+[ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 
 case "$operation" in
 	decrypt) decryption "$@" ;;
