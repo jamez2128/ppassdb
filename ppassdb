@@ -120,7 +120,7 @@ copyToClipboard(){
 	[ -z "$showTextOption" ] && exit 1 ; } && 
 	echo "There is something wrong with the system clipboard" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && 
 	cleanUp "$@" && exit 1
-	timeout 3 head -n 1 "$tmpFile" | sed -z "s/n//g" | $clipboard && echo "Copied to Clipboard sucessfully" && 
+	timeout 3 head -n 1 "$tmpFile" | tr -d "\n" | $clipboard && echo "Copied to Clipboard sucessfully" && 
 	[ -n "$clearClipOption" ] && $clearClipOption
 	[ "$success" -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
 }
@@ -141,7 +141,7 @@ encryption(){
 		printf "Enter the same text again: " && read -r confirmText
 		stty echo
 		echo
-		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | sed -z "s/\n//g" > "$tmpFile" ; } || 
+		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | tr -d "\n"  > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
 	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$ppassdbHOME/$iD/$fileName" "$tmpFile" ; success=$?
