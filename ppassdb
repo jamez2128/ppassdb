@@ -1,9 +1,12 @@
 #!/bin/sh
 
-#Configurations
+#============Configurations============#
+
 clearClipboardTime=15
 deleteJavaScriptTime=30
 #ppassdbHOME="./ppassdbHOME" #Uncomment to override the script's home directory
+
+#======================================#
 
 noOperation(){
  	echo "Usage: $0 [operations] [options] [input_file]"
@@ -42,8 +45,9 @@ listdb(){
 }
 
 checkArgs(){
-	[ -z "$iD" ] && echo "No ID or user was specified. Please use -i option" && exit 1
-	[ -z "$fileName" ] && echo "No name was specified. Please use -n option" && exit 1
+	[ -z "$iD" ] && echo "No ID or user was specified. Please use -i option"
+	[ -z "$fileName" ] && echo "No name was specified. Please use -n option"
+	{ [ -z "$iD"  ] || [ -z "$fileName" ] ; } && exit 1
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -85,7 +89,7 @@ EOF
 }
 
 cleanUp(){
-	rm "$tmpFile"
+	[ -e "$tmpFile" ] && rm "$tmpFile"
 }
 
 showText(){
@@ -118,9 +122,7 @@ copyToClipboard(){
 	cleanUp "$@" && exit 1
 	timeout 3 head -n 1 "$tmpFile" | sed -z "s/n//g" | $clipboard && echo "Copied to Clipboard sucessfully" && 
 	[ -n "$clearClipOption" ] && $clearClipOption
-	[ "$success" -eq 0 ] && [ -n "$javaScriptOption" ] && $javaScriptOption
 	[ "$success" -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
-
 }
 
 generateRandomText(){
@@ -128,26 +130,28 @@ generateRandomText(){
 }
 
 encryption(){
-	tmpFile=$(mktemp)
 	checkArgs "$@"
 	[ ! -d "$iD" ] && mkdir -p "$ppassdbHOME/$iD"
 	if [ -n "$generateRandomTextOption" ]; then
 		$generateRandomTextOption
 	else
+		stty -echo
 		printf "Enter text to encrypt: " && read -r textToEncrypt
-		printf "Enter text again: " && read -r confirmText
+		echo
+		printf "Enter the same text again: " && read -r confirmText
+		stty echo
+		echo
 		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | sed -z "s/\n//g" > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
 	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$ppassdbHOME/$iD/$fileName" "$tmpFile" ; success=$?
-	copyToClipboard "$@"
+	[ -n "$generateRandomTextOption" ] && copyToClipboard "$@"
 }
 
 decryption(){
-	tmpFile=$(mktemp -u)
 	checkArgs "$@"
 	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$iD/$fileName" ; success=$?
-	[ $success -eq 0 ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@" 
+	[ "$success" -eq 0 ] && { [ -n "$javaScriptOption" ] && $javaScriptOption || copyToClipboard "$@" ; }
 }
 numOfOperations=0
 OPTIND=1
@@ -167,11 +171,13 @@ while getopts ":hEDLcsji:n:g" OPTION; do
 		i) iD="$OPTARG" ;;
 		n) fileName="$OPTARG" ;;
 		g) generateRandomTextOption='generateRandomText "$@"' ;;
-		*) echo "-$OPTARG is a unknown option" && exit 1 ;;
+		*) unknownOption="1" ; echo "-$OPTARG is a unknown option" ;;
 	esac
 done
 
+[ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
+tmpFile=$(mktemp -u)
 
 case "$operation" in
 	decrypt) decryption "$@" ;;
@@ -180,4 +186,4 @@ case "$operation" in
 	*) echo "No operation was specified" ; noOperation "$@" ;;
 esac
 
-[ -n "$success" ] && [ $success -eq 0 ] && cleanUp "$@"
+cleanUp "$@"
