@@ -3,7 +3,7 @@
 #Configurations
 clearClipboardTime=15
 deleteJavaScriptTime=30
-#ppassdbHOME=. #Uncomment to override the script's home directory
+#ppassdbHOME="./ppassdbHOME" #Uncomment to override the script's home directory
 
 noOperation(){
  	echo "Usage: $0 [operations] [options] [input_file]"
@@ -36,7 +36,9 @@ fi
 
 listdb(){
 	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } &&
-	printf "ID's: " && ls --color="auto" && echo && ls --color="auto" -- * || echo "There are no encrypted files"
+	echo "$0 Home Directory: $(pwd)"
+	{ [ "$(find ./ | wc -l)" -eq 1 ] && echo "There are no encrypted files added yet" ; } ||
+	{ printf "ID's" && ls -AR --color="auto" ; }
 }
 
 checkArgs(){
@@ -91,34 +93,30 @@ showText(){
 }
 
 clearClipboard(){
-	[ "$success" -eq 0 ] && [ -n "$clipboard" ] && \
-	echo "Clearing the clipboard in $clearClipboardTime seconds" && \
+	[ "$success" -eq 0 ] && [ -n "$clipboard" ] && 
+	echo "Clearing the clipboard in $clearClipboardTime seconds" &&
 	sleep $clearClipboardTime && /dev/null | $clipboard &
 }
 
 copyToClipboard(){
 	# Clipboards by OS'
 	termuxClip="termux-clipboard-set"
-	{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || \
-	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
-	} || \
-	{ command -v "$termuxClip" > /dev/null 2>&1 && clipboard="$termuxClip"
-	} || \
-	{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy"
-	} || \
-	{ [ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe"
-	}
+	{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || 
+	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; } || 
+	{ command -v "$termuxClip" > /dev/null 2>&1 && clipboard="$termuxClip" ; } || 
+	{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ; } ||
+	{ [ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe" ; }
 
 	# If the script doesn't detect any clipboard programs
-	[ -z "$clipboard" ] && echo "Could not find any clipboards" && \
+	[ -z "$clipboard" ] && echo "Could not find any clipboards" && 
 	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && cleanUp "$@" && exit 127
-	[ $? -eq 124 ] && [ "$clipboard" = "$termuxClip"  ] && \
+	[ $? -eq 124 ] && [ "$clipboard" = "$termuxClip"  ] && 
 	{ echo "Termux API is not installed"
 	echo "Install it on F-droid or Google Play Store to use the system clipboard feature"
-	[ -z "$showTextOption" ] && exit 1 ; } && \
-	echo "There is something wrong with the system clipboard" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && \
+	[ -z "$showTextOption" ] && exit 1 ; } && 
+	echo "There is something wrong with the system clipboard" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && 
 	cleanUp "$@" && exit 1
-	timeout 3 head -n 1 "$tmpFile" | $clipboard && echo "Copied to Clipboard sucessfully" && \
+	timeout 3 head -n 1 "$tmpFile" | sed -z "s/n//g" | $clipboard && echo "Copied to Clipboard sucessfully" && 
 	[ -n "$clearClipOption" ] && $clearClipOption
 	[ "$success" -eq 0 ] && [ -n "$javaScriptOption" ] && $javaScriptOption
 	[ "$success" -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
@@ -138,7 +136,7 @@ encryption(){
 	else
 		printf "Enter text to encrypt: " && read -r textToEncrypt
 		printf "Enter text again: " && read -r confirmText
-		[ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | sed -z "s/\n//g" > "$tmpFile" || \
+		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | sed -z "s/\n//g" > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
 	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$ppassdbHOME/$iD/$fileName" "$tmpFile" ; success=$?
