@@ -60,7 +60,7 @@ makeJavaScript() {
 	if [ "$OS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
 		javaScriptPath="/storage/emulated/0/${fileNameOnly#/tmp/}"
 	elif [ "$OS" = "Android" ] ; then
-	javaScriptPath= 
+	javaScriptPath=""
 	echo "You don't have write permissions in Termux" 
 	[ -z "$showTextOption" ] && cleanUp "$@" && exit 1
 	fi
@@ -99,7 +99,7 @@ showText(){
 clearClipboard(){
 	[ "$success" -eq 0 ] && [ -n "$clipboard" ] && 
 	echo "Clearing the clipboard in $clearClipboardTime seconds" &&
-	sleep $clearClipboardTime && /dev/null | $clipboard &
+	sleep $clearClipboardTime && head /dev/null | $clipboard &
 }
 
 copyToClipboard(){
@@ -111,22 +111,18 @@ copyToClipboard(){
 	{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ; } ||
 	{ [ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe" ; }
 
+	head -n 1 "$tmpFile" | tr -d "\n" | $clipboard && echo "Copied to Clipboard sucessfully" && 
+	[ -n "$clearClipOption" ] && $clearClipOption
+	[ "$success" -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
+
 	# If the script doesn't detect any clipboard programs
 	[ -z "$clipboard" ] && echo "Could not find any clipboards" && 
 	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && cleanUp "$@" && exit 127
-	[ $? -eq 124 ] && [ "$clipboard" = "$termuxClip"  ] && 
-	{ echo "Termux API is not installed"
-	echo "Install it on F-droid or Google Play Store to use the system clipboard feature"
-	[ -z "$showTextOption" ] && exit 1 ; } && 
-	echo "There is something wrong with the system clipboard" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && 
-	cleanUp "$@" && exit 1
-	timeout 3 head -n 1 "$tmpFile" | tr -d "\n" | $clipboard && echo "Copied to Clipboard sucessfully" && 
-	[ -n "$clearClipOption" ] && $clearClipOption
-	[ "$success" -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
+
 }
 
 generateRandomText(){
-	awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null | md5sum | head -c 32 > "$tmpFile"
+	tr -dc "[:alnum:]" < /dev/urandom | fold -w "${1:-32}" | head -n 1
 }
 
 encryption(){
