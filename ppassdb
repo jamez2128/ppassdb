@@ -4,7 +4,7 @@
 
 clearClipboardTime=15
 deleteJavaScriptTime=30
-#ppassdbHOME="./ppassdbHOME" #Uncomment to override the script's home directory
+#PPASSDB_HOME="./PPASSDB_HOME" #Uncomment to override the script's home directory
 
 #======================================#
 
@@ -17,37 +17,33 @@ help(){
 	echo "I'll do the documentaion later lol"
 }
 
-[ $# -eq 0 ] && noOperation "$@" && exit
-echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exit	
-
-#Checking for adequate dependencies
-! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127;
-
 defineHome(){
-if [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then 
-	ppassdbHOME="$APPDATA/ppassdb"
+if [ -d "/storage/emulated/0" ] ; then
+	[ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/ppassdb" ||
+	{ echo "You don't have write permissions in Termux" && exit 1 ; }
+elif [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then 
+	PPASSDB_HOME="$APPDATA/ppassdb"
 elif [ -n "$XDG_DATA_HOME" ] ; then
-	ppassdbHOME="$XDG_DATA_HOME/ppassdb"
+	PPASSDB_HOME="$XDG_DATA_HOME/ppassdb"
 elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share" ] ; then
 	XDG_DATA_HOME="$HOME/.local/share"
 elif [ -z "$XDG_DATA_HOME" ] && [ ! -d "$HOME/.local/share" ] ; then
-	ppassdbHOME="$HOME/.ppassdb"
+	PPASSDB_HOME="$HOME/.ppassdb"
 else
-	ppassdbHOME="$(pwd)"
+	PPASSDB_HOME="$(pwd)"
 fi
 }
 
 listdb(){
-	cd "$ppassdbHOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } &&
+	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
 	echo "$0 Home Directory: $(pwd)"
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && echo "There are no encrypted files added yet" ; } ||
 	{ printf "ID's: " && ls -AR | sed "s/^\.\///g" ; }
 }
 
 checkArgs(){
-	[ -z "$iD" ] && echo "No ID or user was specified. Please use -i option"
-	[ -z "$fileName" ] && echo "No name was specified. Please use -n option"
-	{ [ -z "$iD"  ] || [ -z "$fileName" ] ; } && exit 1
+	[ -z "$iD" ] && iD="default"
+	[ -z "$fileName" ] && echo "No name was specified. Please use -n option" && exit 1
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -56,13 +52,12 @@ makeJavaScript() {
 	doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
 	javaScriptPath=$(mktemp -u).html
 	fileNameOnly=${javaScriptPath##*/}
-	OS=$(uname -o)
-	if [ "$OS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
-		javaScriptPath="/storage/emulated/0/${fileNameOnly#/tmp/}"
-	elif [ "$OS" = "Android" ] ; then
-	javaScriptPath=""
-	echo "You don't have write permissions in Termux" 
-	[ -z "$showTextOption" ] && cleanUp "$@" && exit 1
+	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
+		javaScriptPath="/storage/emulated/0/$fileNameOnly}"
+	elif [ "$oS" = "Android" ] ; then
+		javaScriptPath=""
+		echo "You don't have write permissions in Termux" 
+		[ -z "$showTextOption" ] && cleanUp "$@" && exit 1
 	fi
 	[ -n "$javaScriptPath" ] && { cat << EOF
 <html>
@@ -79,11 +74,13 @@ makeJavaScript() {
 EOF
 	} > "$javaScriptPath"
 	[ -n "$javaScriptPath" ] && {
-	[ ! "$OS" = "Android" ] && [ ! "$(uname)" = "Darwin" ] && command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1
-	{ [ -d "/c/Windows" ] && start "$javaScriptPath" ; } ||
-	{ [ "$(uname)" = "Darwin" ] && open "$javaScriptPath" ; }
+	case "$oS" in
+		"Windows") start "$javaScriptPath" ;;
+		"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
+		*) command -v open > /dev/null 2>&1 && open "$javaScriptPath" ;;
+	esac
 	echo "Your decrypted file is in file://$javaScriptPath"
-	[ "$OS" = "Android" ] && echo "It will be in the your Internal Storage"
+	[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage"
 	echo "This file will be deleted in $deleteJavaScriptTime seconds"
 	sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
 	}
@@ -105,30 +102,39 @@ clearClipboard(){
 
 copyToClipboard(){
 	# Clipboards by OS'
-	termuxClip="termux-clipboard-set"
-	{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" || 
-	command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; } || 
-	{ command -v "$termuxClip" > /dev/null 2>&1 && clipboard="$termuxClip" ; } || 
-	{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ; } ||
-	{ [ -d "/c/Windows" ] && command -v clip.exe > /dev/null 2>&1 && clipboard="clip.exe" ; }
+	case $oS in
+		"Windows") clipboard="clip.exe" ;;	
+		"Android") command -v "termux-clipboard-set" > /dev/null 2>&1 && clipboard="termux-clipboard-set" ;;	
+		"GNU/Linux") 
+			[ -n "$WAYLAND_DISPLAY" ] && 
+			command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" ||
+			command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard"
+		;;	
+		*) command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ;;	
+	esac
 
-	head -n 1 "$tmpFile" | tr -d "\n" | $clipboard && echo "Copied to Clipboard sucessfully" && 
-	[ -n "$clearClipOption" ] && $clearClipOption
-	[ -n "$showTextOption" ] && $showTextOption
+	[ -n "$clipboard" ] && 
+	head -n 1 "$tmpFile" | tr -d "\n" | $clipboard && 
+	echo "Copied to Clipboard sucessfully"
 
-	# If the script doesn't detect any clipboard programs
+	$clearClipOption
+
 	[ -z "$clipboard" ] && echo "Could not find any clipboards" && 
-	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && cleanUp "$@" && exit 127
-
+	[ -z "$showTextOption" ] && 
+	[ -z "$javaScriptOption" ] && 
+	cleanUp "$@" && 
+	exit 127
+	
 }
 
 generateRandomText(){
-	tr -dc "[:alnum:]" < /dev/urandom | fold -w "${1:-32}" | head -n 1
+	tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | head -n 1 > "$tmpFile"
+	trap 'cleanUp "$@" && exit 130' INT
 }
 
 encryption(){
 	checkArgs "$@"
-	[ ! -d "$iD" ] && mkdir -p "$ppassdbHOME/$iD"
+	[ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
 	if [ -n "$generateRandomTextOption" ]; then
 		$generateRandomTextOption
 	else
@@ -141,21 +147,32 @@ encryption(){
 		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | tr -d "\n"  > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$ppassdbHOME/$iD/$fileName" "$tmpFile" || exit 1
-	[ -n "$generateRandomTextOption" ] && copyToClipboard "$@"
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$PPASSDB_HOME/$iD/$fileName" "$tmpFile" || 
+	{ cleanUp "$@" && exit 1 ; }
+	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
+	$javaScriptOption
+	$showTextOption
 }
 
 decryption(){
 	checkArgs "$@"
-	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$iD/$fileName" || exit 1
-	[ -n "$javaScriptOption" ] && $javaScriptOption || copyToClipboard "$@"
+	gpg --no-symkey-cache --output "$tmpFile" "$PPASSDB_HOME/$iD/$fileName" || { cleanUp "$@" exit 1 ; }
+	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
+	$javaScriptOption 
+	$showTextOption
 }
+
+#Start of the script
+[ $# -eq 0 ] && noOperation "$@" && exit
+echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exit	
+
+#Checking for adequate dependencies
+! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127;
+[ -z "$PPASSDB_HOME" ] && defineHome "$@"
+[ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
+
 numOfOperations=0
 OPTIND=1
-
-[ -z "$ppassdbHOME" ] && defineHome "$@"
-[ ! -d "$ppassdbHOME" ] && mkdir -p "$ppassdbHOME"
-
 while getopts ":hEDLcsji:n:g" OPTION; do
 	case $OPTION in
 		h) help "$@" ; exit ;;
@@ -168,14 +185,14 @@ while getopts ":hEDLcsji:n:g" OPTION; do
 		i) iD="$OPTARG" ;;
 		n) fileName="$OPTARG" ;;
 		g) generateRandomTextOption='generateRandomText "$@"' ;;
-		*) unknownOption="1" ; echo "-$OPTARG is a unknown option" ;;
+		*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
 
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 tmpFile=$(mktemp -u)
-
+[ -d "c/Windows" ] && oS="Windows" || oS=$(uname -o || uname)
 case "$operation" in
 	decrypt) decryption "$@" ;;
 	encrypt) encryption "$@" ;;
