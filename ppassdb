@@ -98,7 +98,7 @@ showText(){
 }
 
 clearClipboard(){
-	[ "$success" -eq 0 ] && [ -n "$clipboard" ] && 
+	[ -n "$clipboard" ] && 
 	echo "Clearing the clipboard in $clearClipboardTime seconds" &&
 	sleep $clearClipboardTime && head /dev/null | $clipboard &
 }
@@ -114,7 +114,7 @@ copyToClipboard(){
 
 	head -n 1 "$tmpFile" | tr -d "\n" | $clipboard && echo "Copied to Clipboard sucessfully" && 
 	[ -n "$clearClipOption" ] && $clearClipOption
-	[ "$success" -eq 0 ] && [ -n "$showTextOption" ] && $showTextOption
+	[ -n "$showTextOption" ] && $showTextOption
 
 	# If the script doesn't detect any clipboard programs
 	[ -z "$clipboard" ] && echo "Could not find any clipboards" && 
@@ -141,14 +141,14 @@ encryption(){
 		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | tr -d "\n"  > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$ppassdbHOME/$iD/$fileName" "$tmpFile" ; success=$?
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$ppassdbHOME/$iD/$fileName" "$tmpFile" || exit 1
 	[ -n "$generateRandomTextOption" ] && copyToClipboard "$@"
 }
 
 decryption(){
 	checkArgs "$@"
-	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$iD/$fileName" ; success=$?
-	[ "$success" -eq 0 ] && { [ -n "$javaScriptOption" ] && $javaScriptOption || copyToClipboard "$@" ; }
+	gpg --no-symkey-cache --output "$tmpFile" "$ppassdbHOME/$iD/$fileName" || exit 1
+	[ -n "$javaScriptOption" ] && $javaScriptOption || copyToClipboard "$@"
 }
 numOfOperations=0
 OPTIND=1
