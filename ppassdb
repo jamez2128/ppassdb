@@ -79,8 +79,9 @@ makeJavaScript() {
 EOF
 	} > "$javaScriptPath"
 	[ -n "$javaScriptPath" ] && {
-	[ ! "$OS" = "Android" ] && command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1
-	[ -d "/c/Windows" ] && start "$javaScriptPath"
+	[ ! "$OS" = "Android" ] && [ ! "$(uname)" = "Darwin" ] && command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1
+	{ [ -d "/c/Windows" ] && start "$javaScriptPath" ; } ||
+	{ [ "$(uname)" = "Darwin" ] && open "$javaScriptPath" ; }
 	echo "Your decrypted file is in file://$javaScriptPath"
 	[ "$OS" = "Android" ] && echo "It will be in the your Internal Storage"
 	echo "This file will be deleted in $deleteJavaScriptTime seconds"
