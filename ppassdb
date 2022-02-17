@@ -26,7 +26,7 @@ elif [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then
 elif [ -n "$XDG_DATA_HOME" ] ; then
 	PPASSDB_HOME="$XDG_DATA_HOME/ppassdb"
 elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share" ] ; then
-	XDG_DATA_HOME="$HOME/.local/share"
+	XDG_DATA_HOME="$HOME/.local/share/ppassdb"
 elif [ -z "$XDG_DATA_HOME" ] && [ ! -d "$HOME/.local/share" ] ; then
 	PPASSDB_HOME="$HOME/.ppassdb"
 else
