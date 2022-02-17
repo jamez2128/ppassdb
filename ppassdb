@@ -44,6 +44,7 @@ listdb(){
 checkArgs(){
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && echo "No name was specified. Please use -n option" && exit 1
+	fileName=$(echo "$fileName" | sed "s/\//_/g" )
 }
 
 #A workaround if the script failed to take care of the clipboard
