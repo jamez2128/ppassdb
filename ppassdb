@@ -50,7 +50,7 @@ checkArgs(){
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
-	doubleQuoteFriendly=$(sed 's/\\/\\\\/g;s/\"/\\"/g' "$tmpFile")
+	doubleQuoteFriendly=$(sed 's/[\\\"]/\\&/g' "$tmpFile")
 	javaScriptPath=$(mktemp -u).html
 	fileNameOnly=${javaScriptPath##*/}
 	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
