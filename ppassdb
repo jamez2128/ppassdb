@@ -50,7 +50,7 @@ checkArgs(){
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
-	doubleQuoteFriendly=$(sed 's/[\\\"]/\\&/g' "$tmpFile")
+	escapeText=$(sed 's/[\\\"]/\\&/g' "$tmpFile")
 	javaScriptPath=$(mktemp -u).html
 	fileNameOnly=${javaScriptPath##*/}
 	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
@@ -65,7 +65,7 @@ makeJavaScript() {
 	<head>
 	<title> Copy to system clipboard </title>
 	<script>
-		function copyToClipboard() { navigator.clipboard.writeText("$doubleQuoteFriendly"); }
+		function copyToClipboard() { navigator.clipboard.writeText("$escapeText"); }
 	</script>
 </head>
 <body>
