@@ -20,12 +20,12 @@ noOperation(){
 
 help(){
 	usage "$@"
-	echo -e "
+	echo "
 Operations:
 -h, --help To shows this help message
--E \t   For adding and encryting text files.
--D \t   For decrypting text file.
--L \t   Lists all the added encrypted text files.
+-E	   For adding and encryting text files.
+-D	   For decrypting text file.
+-L	   Lists all the added encrypted text files.
 
 Options:
 Specific for -E only:
@@ -94,9 +94,13 @@ listdb(){
 }
 
 checkArgs(){
+	[ -n "$iD" ] && iD=$(echo "$iD" | sed "s/^\/*//g")
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && echo "No name was specified. Please use -n option" && exit 1
 	fileName=$(echo "$fileName" | sed "s/\//_/g" )
+	inputFile="$PPASSDB_HOME/$iD/$fileName"
+	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
+	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" && exit 1 ; }
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -187,7 +191,6 @@ generateRandomText(){
 
 encryption(){
 	checkArgs "$@"
-	[ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
 	if [ -n "$generateRandomTextOption" ]; then
 		$generateRandomTextOption
 	else
@@ -200,7 +203,7 @@ encryption(){
 		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | tr -d "\n"  > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$PPASSDB_HOME/$iD/$fileName" "$tmpFile" || 
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" "$tmpFile" || 
 	{ cleanUp "$@" && exit 1 ; }
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption
@@ -209,7 +212,7 @@ encryption(){
 
 decryption(){
 	checkArgs "$@"
-	gpg --no-symkey-cache --output "$tmpFile" "$PPASSDB_HOME/$iD/$fileName" || { cleanUp "$@" exit 1 ; }
+	gpg --no-symkey-cache --output "$tmpFile" "$inputFile" || { cleanUp "$@" exit 1 ; }
 	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption 
 	$showTextOption
