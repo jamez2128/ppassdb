@@ -203,8 +203,7 @@ encryption(){
 		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | tr -d "\n"  > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" "$tmpFile" || 
-	{ cleanUp "$@" && exit 1 ; }
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" "$tmpFile" || exit 1
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption
 	$showTextOption
@@ -212,7 +211,7 @@ encryption(){
 
 decryption(){
 	checkArgs "$@"
-	gpg --no-symkey-cache --output "$tmpFile" "$inputFile" || { cleanUp "$@" exit 1 ; }
+	gpg --no-symkey-cache --output "$tmpFile" "$inputFile" || exit 1
 	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption 
 	$showTextOption
