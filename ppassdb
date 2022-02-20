@@ -4,7 +4,8 @@
 
 clearClipboardTime=15
 deleteJavaScriptTime=30
-#PPASSDB_HOME="./PPASSDB_HOME" #Uncomment to override the script's home directory
+dirName="ppassdb"
+#PPASSDB_HOME="./$dirName" #Uncomment to override the script's home directory
 
 #======================================#
 
@@ -52,7 +53,6 @@ Made by jamez2128
 }
 
 searchHome(){
-dirName="ppassdb"
 if [ -d "/storage/emulated/0/$dirName"  ] ; then
 	[ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/$dirName" ||
 	{ echo "You don't have write permissions in Termux" && exit 1 ; }
