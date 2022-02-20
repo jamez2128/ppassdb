@@ -245,7 +245,7 @@ done
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 tmpFile=$(mktemp -u)
-[ -d "c/Windows" ] && oS="Windows" || oS=$(uname -o || uname)
+[ -d "/c/Windows" ] && oS="Windows" || oS=$(uname -o || uname)
 case "$operation" in
 	decrypt) decryption "$@" ;;
 	encrypt) encryption "$@" ;;
