@@ -8,13 +8,65 @@ deleteJavaScriptTime=30
 
 #======================================#
 
+usage(){
+ 	echo "Usage: $0 [operation] [options] [input_file]"
+}
+
 noOperation(){
- 	echo "Usage: $0 [operations] [options] [input_file]"
+	usage "$@"
 	echo "Type \"$0 --help\" for more"
 }
 
 help(){
-	echo "I'll do the documentaion later lol"
+	usage "$@"
+	echo -e "
+Operations:
+-h, --help To shows this help message
+-E \t   For adding and encryting text files.
+-D \t   For decrypting text file.
+-L \t   Lists all the added encrypted text files.
+
+Options:
+Specific for -E only:
+-g Auto generates a random string and encrypts it.
+
+Specific to both -D and -E:
+-i An identifier to group encrypted files. This is optional and if this option is not called, it will use the default folder.
+-n This will be the input file name. \"/\" are not allowed in this option and will be replaced with \"_\" if present.
+-c Clears the clipboard after a period of time.
+-s Shows the text. This will return a successful exit status even if the clipboard failed.
+-j Puts text to the generated html to copy it from the browser.
+
+Examples:
+Lists all encrypted file
+$0 -L
+
+Encrypt a text
+$0 -E -i \"username\" -n \"website.pass\" 
+
+Decrypts the password and put it into the system clipboard and clears for a period of time:
+$0 -Dc -i \"username\" -n \"website.pass\"
+
+Made by jamez2128
+	"
+}
+
+searchHome(){
+ppassdbDirName="ppassdb"
+if [ -d "/storage/emulated/0/ppassdb"  ] ; then
+	[ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/$pppassdbDirName" ||
+	{ echo "You don't have write permissions in Termux" && exit 1 ; }
+elif [ -d "$APPDATA/$ppassdbDirName" ] ; then 
+	PPASSDB_HOME="$APPDATA/$pppassdbDirName"
+elif [ -d "$HOME/.$ppassdbDirName" ] ; then
+	PPASSDB_HOME="$HOME/.$ppassdbDirName"
+elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share/$ppassdbDirName" ] ; then
+	PPASSDB_HOME="$HOME/.local/share/$ppassdbDirName"
+elif [ -n "$XDG_DATA_HOME/$ppassdbDirName" ] ; then
+	PPASSDB_HOME="$XDG_DATA_HOME/$ppassdbDirName"
+else 
+	defineHome "$@"
+fi
 }
 
 defineHome(){
@@ -22,15 +74,15 @@ if [ -d "/storage/emulated/0" ] ; then
 	[ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/ppassdb" ||
 	{ echo "You don't have write permissions in Termux" && exit 1 ; }
 elif [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then 
-	PPASSDB_HOME="$APPDATA/ppassdb"
+	PPASSDB_HOME="$APPDATA/"
 elif [ -n "$XDG_DATA_HOME" ] ; then
-	PPASSDB_HOME="$XDG_DATA_HOME/ppassdb"
+	PPASSDB_HOME="$XDG_DATA_HOME/$ppassdbDirName"
 elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share" ] ; then
-	XDG_DATA_HOME="$HOME/.local/share/ppassdb"
+	XDG_DATA_HOME="$HOME/.local/share/$ppassdbDirName"
 elif [ -z "$XDG_DATA_HOME" ] && [ ! -d "$HOME/.local/share" ] ; then
-	PPASSDB_HOME="$HOME/.ppassdb"
+	PPASSDB_HOME="$HOME/.$ppassdbDirName"
 else
-	PPASSDB_HOME="$(pwd)"
+	PPASSDB_HOME="$(pwd)/$ppassdbDirName"
 fi
 }
 
@@ -169,7 +221,7 @@ echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exi
 
 #Checking for adequate dependencies
 ! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127;
-[ -z "$PPASSDB_HOME" ] && defineHome "$@"
+[ -z "$PPASSDB_HOME" ] && searchHome "$@"
 [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 
 numOfOperations=0
