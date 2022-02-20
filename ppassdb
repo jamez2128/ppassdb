@@ -114,7 +114,7 @@ makeJavaScript() {
 	elif [ "$oS" = "Android" ] ; then
 		javaScriptPath=""
 		echo "You don't have write permissions in Termux" 
-		[ -z "$showTextOption" ] && cleanUp "$@" && exit 1
+		[ -z "$showTextOption" ] && { cleanUp "$@" ; exit 1 ; }
 	fi
 	[ -n "$javaScriptPath" ] && { cat << EOF
 <html>
@@ -178,15 +178,13 @@ copyToClipboard(){
 
 	[ -z "$clipboard" ] && echo "Could not find any clipboards" && 
 	[ -z "$showTextOption" ] && 
-	[ -z "$javaScriptOption" ] && 
-	cleanUp "$@" && 
-	exit 127
+	[ -z "$javaScriptOption" ] &&  { cleanUp "$@" ; exit 127 ; }
 	
 }
 
 generateRandomText(){
 	tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | head -n 1 > "$tmpFile"
-	trap 'cleanUp "$@" && exit 130' INT
+	trap 'cleanUp "$@" ; exit 130' INT
 }
 
 encryption(){
