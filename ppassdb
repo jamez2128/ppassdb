@@ -179,12 +179,10 @@ copyToClipboard(){
 	[ -z "$clipboard" ] && echo "Could not find any clipboards" && 
 	[ -z "$showTextOption" ] && 
 	[ -z "$javaScriptOption" ] &&  { cleanUp "$@" ; exit 127 ; }
-	
 }
 
 generateRandomText(){
 	tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | head -n 1 > "$tmpFile"
-	trap 'cleanUp "$@" ; exit 130' INT
 }
 
 encryption(){
@@ -209,7 +207,7 @@ encryption(){
 
 decryption(){
 	checkArgs "$@"
-	gpg --no-symkey-cache --output "$tmpFile" "$inputFile" || exit 1
+	gpg --no-symkey-cache --output "$tmpFile" "$inputFile" || { cleanUp "$@" ; exit 1 ; }
 	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption 
 	$showTextOption
@@ -223,7 +221,7 @@ echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exi
 ! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127;
 [ -z "$PPASSDB_HOME" ] && searchHome "$@"
 [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
-
+trap 'cleanUp "$@" ; stty echo ; exit 130' INT
 numOfOperations=0
 OPTIND=1
 while getopts ":hEDLcsji:n:g" OPTION; do
