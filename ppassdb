@@ -90,7 +90,7 @@ listdb(){
 	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
 	echo "$0 Home Directory: $(pwd)"
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && echo "There are no encrypted files added yet" ; } ||
-	{ printf "ID's: " && ls -AR $lsColors | sed "s/^\.\///g" ; }
+	{ printf "ID's: " && ls -AR | sed "s/^\.\///g" ; }
 }
 
 checkArgs(){
