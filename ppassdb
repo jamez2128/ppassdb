@@ -54,7 +54,7 @@ Made by jamez2128
 
 searchHome(){
 if [ -d "/storage/emulated/0/$dirName"  ] ; then
-	[ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/$dirName" ||
+	{ [ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/$dirName" ; } ||
 	{ echo "You don't have write permissions in Termux" && exit 1 ; }
 elif [ -d "$APPDATA/$dirName" ] ; then 
 	PPASSDB_HOME="$APPDATA/$dirName"
@@ -71,7 +71,7 @@ fi
 
 defineHome(){
 if [ -d "/storage/emulated/0" ] ; then
-	[ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/ppassdb" ||
+	{ [ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/ppassdb" ; } ||
 	{ echo "You don't have write permissions in Termux" && exit 1 ; }
 elif [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then 
 	PPASSDB_HOME="$APPDATA/"
@@ -90,7 +90,7 @@ listdb(){
 	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
 	echo "$0 Home Directory: $(pwd)"
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && echo "There are no encrypted files added yet" ; } ||
-	{ printf "ID's: " && ls -AR | sed "s/^\.\///g" ; }
+	{ printf "ID's: " && ls -AR $lsColors | sed "s/^\.\///g" ; }
 }
 
 checkArgs(){
@@ -199,7 +199,7 @@ encryption(){
 		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | tr -d "\n"  > "$tmpFile" ; } || 
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" "$tmpFile" || { cleanUp "$@" ; exit 1 ; }
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$tmpFile" "$tmpFile" || { cleanUp "$@" ; exit 1 ; }
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption
 	$showTextOption
@@ -222,6 +222,13 @@ echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exi
 [ -z "$PPASSDB_HOME" ] && searchHome "$@"
 [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 trap 'cleanUp "$@" ; stty echo ; exit 130' INT
+{ [ -d "/c/Windows" ] && oS="Windows" ; } || 
+{
+case "$(uname)" in
+	*Linux) oS=$(uname -o) ;; 
+	*) oS=$(uname) ;; 
+esac
+}
 numOfOperations=0
 OPTIND=1
 while getopts ":hEDLcsji:n:g" OPTION; do
@@ -243,12 +250,10 @@ done
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 tmpFile=$(mktemp -u)
-[ -d "/c/Windows" ] && oS="Windows" || oS=$(uname -o || uname)
 case "$operation" in
 	decrypt) decryption "$@" ;;
 	encrypt) encryption "$@" ;;
 	list) listdb "$@" ;;
 	*) echo "No operation was specified" ; noOperation "$@" ;;
 esac
-
 cleanUp "$@"
