@@ -90,7 +90,7 @@ listdb(){
 	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
 	echo "$0 Home Directory: $(pwd)"
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && echo "There are no encrypted files added yet" ; } ||
-	{ printf "ID's: " && ls -AR | sed "s/^\.\///g" ; }
+	{ printf "ID's: " && ls -AR ; }
 }
 
 checkArgs(){
@@ -106,7 +106,7 @@ checkArgs(){
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
-	escapeText=$(sed 's/[\\\"]/\\&/g' "$tmpFile")
+	escapeText=$(echo "$textToCopy" | sed 's/[\\\"]/\\&/g')
 	javaScriptPath=$(mktemp -u).html
 	fileNameOnly=${javaScriptPath##*/}
 	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
@@ -144,11 +144,11 @@ EOF
 }
 
 cleanUp(){
-	[ -e "$tmpFile" ] && rm "$tmpFile"
+	[ -e "$decryptedFile" ] && rm "$decryptedFile"
 }
 
 showText(){
-	echo && head -n 1 "$tmpFile" && echo && echo
+	echo &&  echo "$textToCopy" && echo && echo
 }
 
 clearClipboard(){
@@ -171,7 +171,7 @@ copyToClipboard(){
 	esac
 
 	[ -n "$clipboard" ] && 
-	head -n 1 "$tmpFile" | tr -d "\n" | $clipboard && 
+	echo "$textToCopy" | tr -d "\n" | $clipboard && 
 	echo "Copied to Clipboard sucessfully"
 
 	$clearClipOption
@@ -182,7 +182,7 @@ copyToClipboard(){
 }
 
 generateRandomText(){
-	tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | head -n 1 > "$tmpFile"
+	textToEncrypt=$(tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | head -n 1)
 }
 
 encryption(){
@@ -196,10 +196,10 @@ encryption(){
 		printf "Enter the same text again: " && read -r confirmText
 		stty echo
 		echo
-		{ [ "$textToEncrypt" = "$confirmText" ] && echo "$textToEncrypt" | tr -d "\n"  > "$tmpFile" ; } || 
-		{ echo "Texts do not match" && exit 1 ; }
+		[ "$textToEncrypt" = "$confirmText" ]  || { echo "Texts do not match" && exit 1 ; }
 	fi
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" "$tmpFile" || { cleanUp "$@" ; exit 1 ; }
+	echo "$textToEncrypt" | tr -d "\n" | gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" || { cleanUp "$@" ; exit 1 ; }
+	textToCopy="$textToEncrypt"
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption
 	$showTextOption
@@ -207,7 +207,9 @@ encryption(){
 
 decryption(){
 	checkArgs "$@"
-	gpg --no-symkey-cache --output "$tmpFile" "$inputFile" || { cleanUp "$@" ; exit 1 ; }
+	decryptedFile=$(mktemp -u)
+	gpg --no-symkey-cache -o "$decryptedFile" "$inputFile" || { cleanUp "$@" ; exit 1 ; }
+	textToCopy=$(head -n 1 "$decryptedFile")
 	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption 
 	$showTextOption
@@ -249,7 +251,6 @@ done
 
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
-tmpFile=$(mktemp -u)
 case "$operation" in
 	decrypt) decryption "$@" ;;
 	encrypt) encryption "$@" ;;
