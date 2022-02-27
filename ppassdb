@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#============================Configurations=================================#
+#===========================Configurations=================================#
 
 clearClipboardTime=15
 deleteJavaScriptTime=30
@@ -8,7 +8,7 @@ dirName="ppassdb"
 ##Uncomment to override the script's home directory
 #PPASSDB_HOME="./$dirName" 
 
-#===========================================================================#
+#==========================================================================#
 
 usage() { echo "Usage: $0 <operation> [options] <filename>" ; }
 noOperation() { usage "$@" ; echo "Type \"$0 --help\" for more info" ; }
