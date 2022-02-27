@@ -203,7 +203,8 @@ copyToClipboard() {
 			command -v xclip > /dev/null 2>&1 && 
 			clipboard="xclip -selection clipboard"
 		;;	
-		*) command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ;;	
+		*) command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy"
+		;;	
 	esac
 
 	[ -n "$clipboard" ] && {
