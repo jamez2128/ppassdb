@@ -11,7 +11,9 @@ dirName="ppassdb"
 #==========================================================================#
 
 usage() { echo "Usage: $0 <operation> [options] <filename>" ; }
+
 noOperation() { usage "$@" ; echo "Type \"$0 --help\" for more info" ; }
+
 help() {
 	usage "$@"
 	echo "
@@ -61,7 +63,8 @@ searchHome() {
     } || { echo "You don't have write permissions in Termux" && exit 1 ; }
   elif [ -d "$APPDATA/$dirName" ] ; then PPASSDB_HOME="$APPDATA/$dirName"
   elif [ -d "$HOME/.$dirName" ] ; then PPASSDB_HOME="$HOME/.$dirName"
-  elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share/$dirName" ] ; then
+  elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share/$dirName" ] ;
+  then
     PPASSDB_HOME="$HOME/.local/share/$dirName"
   elif [ -d "$XDG_DATA_HOME/$dirName" ] ; then
     PPASSDB_HOME="$XDG_DATA_HOME/$dirName"
@@ -72,13 +75,15 @@ searchHome() {
 defineHome() {
   if [ -d "/storage/emulated/0" ] ; then 
     {
-      [ -w "/storage/emulated/0" ] && PPASSDB_HOME="/storage/emulated/0/ppassdb"
+      [ -w "/storage/emulated/0" ] && 
+      PPASSDB_HOME="/storage/emulated/0/ppassdb"
     } ||
     {
       echo "You don't have write permissions in Termux"
       exit 1
     }
-  elif [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then PPASSDB_HOME="$APPDATA"
+  elif [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then
+    PPASSDB_HOME="$APPDATA"
   elif [ -n "$XDG_DATA_HOME" ] ; then PPASSDB_HOME="$XDG_DATA_HOME/$dirName"
   elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share" ] ; then
     XDG_DATA_HOME="$HOME/.local/share/$dirName"
@@ -89,13 +94,16 @@ defineHome() {
   mkdir -p "$PPASSDB_HOME"
 }
 
+lsFormat() { printf "ID's: " && ls -AR ; }
+
 listdb() {
+  command -v "tree" && listCommand="tree -aR" || listCommand='lsFormat "$@"'
   cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
   echo "$0 Home Directory: $(pwd)"
   {
     [ "$(find ./ | wc -l)" -eq 1 ] && 
     echo "There are no encrypted files added yet"
-  } || { printf "ID's: " && ls -AR ; }
+  } || $listCommand 
 }
 
 checkArgs() {

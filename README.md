@@ -1,6 +1,9 @@
 Global Dependencies:
 GnuPG
 
+Optional Dependecies:
+tree
+
 Dependencies for GNU/Linux:
 xclip or wl-copy
 
