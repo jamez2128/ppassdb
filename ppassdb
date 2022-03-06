@@ -217,6 +217,7 @@ copyToClipboard() {
 }
 
 generateRandomText() { 
+  LC_CTYPE=C
   textToEncrypt=$(tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | head -n 1)
 }
 
