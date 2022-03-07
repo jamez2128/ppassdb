@@ -56,61 +56,58 @@ checkDependecies() {
 }
 
 searchHome() {
-  if [ -d "/storage/emulated/0/$dirName"  ] ; then
-    {
-      [ -w "/storage/emulated/0" ] &&
-      PPASSDB_HOME="/storage/emulated/0/$dirName"
-    } || { echo "You don't have write permissions in Termux" && exit 1 ; }
-  elif [ -d "$APPDATA/$dirName" ] ; then PPASSDB_HOME="$APPDATA/$dirName"
+  androidPath="/storage/emulated/0"
+  windowsPath="$APPDATA"
+  gnuLinuxPath="$HOME/.local/share"
+  xdgPath="$XDG_DATA_HOME"
+  
+  if [ -d "$androidPath/$dirName"  ] ; then
+    [ ! -w "$androidPath" ] && 
+    echo "You don't have write permissions in Termux" && exit 1
+    PPASSDB_HOME="$androidPath/$dirName"
+  elif [ -d "$windowsPath/$dirName" ] ; then PPASSDB_HOME="$windowsPath/$dirName"
   elif [ -d "$HOME/.$dirName" ] ; then PPASSDB_HOME="$HOME/.$dirName"
-  elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share/$dirName" ] ;
-  then
-    PPASSDB_HOME="$HOME/.local/share/$dirName"
-  elif [ -d "$XDG_DATA_HOME/$dirName" ] ; then
-    PPASSDB_HOME="$XDG_DATA_HOME/$dirName"
+  elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath/$dirName" ]
+    then PPASSDB_HOME="$gnuLinuxPath/$dirName"
+  elif [ -d "$xdgPath/$dirName" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
   else defineHome "$@"
   fi
 }
 
 defineHome() {
-  if [ -d "/storage/emulated/0" ] ; then 
-    {
-      [ -w "/storage/emulated/0" ] && 
-      PPASSDB_HOME="/storage/emulated/0/ppassdb"
-    } ||
-    {
-      echo "You don't have write permissions in Termux"
-      exit 1
-    }
-  elif [ -n "$APPDATA" ] && [ -d "/c/Windows" ] ; then
-    PPASSDB_HOME="$APPDATA"
-  elif [ -n "$XDG_DATA_HOME" ] ; then PPASSDB_HOME="$XDG_DATA_HOME/$dirName"
-  elif [ -z "$XDG_DATA_HOME" ] && [ -d "$HOME/.local/share" ] ; then
-    XDG_DATA_HOME="$HOME/.local/share/$dirName"
-  elif [ -z "$XDG_DATA_HOME" ] && [ ! -d "$HOME/.local/share" ] ; then
+  if [ -d "$androidPath" ] ; then
+    [ ! -w "$androidPath" ] && 
+    echo "You don't have write permissions in Termux" && exit 1
+    PPASSDB_HOME="$androidPath/$dirName"
+  elif [ -d "/c/Windows" ] ; then PPASSDB_HOME="$windowsPath/$dirName"
+  elif [ -n "$XDG_DATA_HOME" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
+  elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath" ] ; then
+    PPASSDB_HOME="$gnuLinuxPath/$dirName"
+  elif [ -z "$XDG_DATA_HOME" ] && [ ! -d "$gnuLinuxPath" ] ; then
     PPASSDB_HOME="$HOME/.$dirName"
   else PPASSDB_HOME="$(pwd)/$dirName"
   fi
   mkdir -p "$PPASSDB_HOME"
 }
 
-lsFormat() { printf "ID's: " && ls -AR ; }
-
 listdb() {
-  command -v "tree" && listCommand="tree -aR" || listCommand='lsFormat "$@"'
   cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 1 ; } 
   echo "$0 Home Directory: $(pwd)"
   {
     [ "$(find ./ | wc -l)" -eq 1 ] && 
     echo "There are no encrypted files added yet"
-  } || $listCommand 
+  } || 
+  {
+    { command -v "tree" > /dev/null 2>&1 && tree -aR ; } ||
+    { printf "ID's: " && ls -AR ; }   
+  }
 }
 
 checkArgs() {
   [ -n "$iD" ] && iD=$(echo "$iD" | sed "s/^\/*//g")
   [ -z "$iD" ] && iD="default"
-  [ -z "$fileName" ] && echo "No name was specified. Please use -n option" && 
-  exit 1
+  [ -z "$fileName" ] && 
+  echo "No name was specified. Please use -n option" && exit 1
   fileName=$(echo "$fileName" | sed "s/\//_/g" )
   inputFile="$PPASSDB_HOME/$iD/$fileName"
   [ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && 
@@ -218,7 +215,8 @@ copyToClipboard() {
 
 generateRandomText() { 
   LC_CTYPE=C
-  textToEncrypt=$(tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | head -n 1)
+  textToEncrypt=$(tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | 
+  head -n 1)
 }
 
 encryption() {
