@@ -136,7 +136,7 @@ makeJavaScript() {
 		cat << EOF
 <html>
 	<head>
-	<title> Copy to system clipboard </title>
+	<title> $fileName | $iD | ${0#./} </title>
 	<script>
 		function copyToClipboard() { 
 			navigator.clipboard.writeText("$escapeText"); 
