@@ -92,7 +92,8 @@ defineHome() {
 listdb() {
 	cd "$PPASSDB_HOME" || 
 	{ echo "ppassdb home doesn't exist" && exit 1 ; } 
-	echo "$0 Home Directory: $(pwd)"
+	echo "$0 Home Directory:"
+	pwd
 	{
 		[ "$(find ./ | wc -l)" -eq 1 ] && 
 		echo "There are no encrypted files added yet"
@@ -199,8 +200,8 @@ copyToClipboard() {
 				clipboard="xclip -selection clipboard"
 			}
 		;;	
-		*) command -v pbcopy > /dev/null 2>&1
-			&& clipboard="pbcopy"
+		*) command -v pbcopy > /dev/null 2>&1 &&
+			clipboard="pbcopy"
 		;;
 	esac
 
