@@ -153,9 +153,11 @@ EOF
 	{
 		case "$oS" in
 			"Windows") start "$javaScriptPath" ;;
-			"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && 
+			"GNU/Linux") command -v xdg-open >\
+				/dev/null 2>&1 && 
 			xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
-			*) command -v open > /dev/null 2>&1 && open "$javaScriptPath" ;;
+			*) command -v open > /dev/null 2>&1 && open\
+			       "$javaScriptPath" ;;
 		esac
 		echo "Your decrypted file is in file://$javaScriptPath"
 		[ "$oS" = "Android" ] && 
@@ -182,7 +184,8 @@ copyToClipboard() {
 	case $oS in
 		"Windows") clipboard="clip.exe" ;;	
 		"Android")
-			command -v "termux-clipboard-set" > /dev/null 2>&1 && 
+			command -v "termux-clipboard-set" >\
+			/dev/null 2>&1 &&
 			clipboard="termux-clipboard-set" 
 		;;	
 		"GNU/Linux") 
@@ -196,7 +199,9 @@ copyToClipboard() {
 				clipboard="xclip -selection clipboard"
 			}
 		;;	
-		*) command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ;;	
+		*) command -v pbcopy > /dev/null 2>&1
+			&& clipboard="pbcopy"
+		;;
 	esac
 
 	[ -n "$clipboard" ] &&
@@ -222,7 +227,8 @@ generateRandomText() {
 encryption() {
 	checkDependecies "$@"
 	checkArgs "$@"
-	if [ -n "$generateRandomTextOption" ]; then $generateRandomTextOption
+	if [ -n "$generateRandomTextOption" ]; then
+		$generateRandomTextOption
 	else
 		stty -echo
 		printf "Enter text to encrypt: " && read -r textToEncrypt
@@ -234,7 +240,8 @@ encryption() {
 		{ echo "Texts do not match" && exit 1 ; }
 	fi
 	echo "$textToEncrypt" | tr -d "\n" |
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" || exit 1
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" ||
+	exit 1
 	textToCopy="$textToEncrypt"
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] &&
 	copyToClipboard "$@"
@@ -275,16 +282,23 @@ OPTIND=1
 while getopts ":hEDLcsji:n:g" OPTION; do
 	case $OPTION in
 		h) help "$@" ; exit ;;
-		D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
-		E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
-		L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
+		D) numOfOperations=$((numOfOperations+1))
+			operation=decrypt
+		;;
+		E) numOfOperations=$((numOfOperations+1))
+			operation=encrypt
+		;;
+		L) numOfOperations=$((numOfOperations+1))
+			operation=list
+		;;
 		c) clearClipOption='clearClipboard "$@"' ;;
 		s) showTextOption='showText "$@"' ;;
 		j) javaScriptOption='makeJavaScript "$@"' ;;
 		i) iD="$OPTARG" ;;
 		n) fileName="$OPTARG" ;;
 		g) generateRandomTextOption='generateRandomText "$@"' ;;
-		*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
+		*) unknownOption="1" ; echo "-$OPTARG is an unknown option"
+		;;
 	esac
 done
 [ -n "$unknownOption" ] && exit 1
