@@ -10,9 +10,9 @@ dirName="ppassdb"
 
 #==========================================================================#
 
-usage() { echo "Usage: $0 <operation> [options] <filename>" ; }
+usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" ; }
 
-noOperation() { usage "$@" ; echo "Type \"$0 --help\" for more info" ; }
+noOperation() { usage "$@" ; echo "Type \"${0##*/} --help\" for more info" ; }
 
 help() {
 	usage "$@"
@@ -39,14 +39,14 @@ Specific to both -D and -E:
 
 Examples:
 Lists all encrypted file
-$0 -L
+${0##*/} -L
 
 Encrypt a text
-$0 -E -i \"username\" -n \"website.pass\" 
+${0##*/} -E -i \"username\" -n \"website.pass\" 
 
 Decrypts the password and put it into the system clipboard and clears for a 
 period of time:
-$0 -Dc -i \"username\" -n \"website.pass\"
+${0##*/} -Dc -i \"username\" -n \"website.pass\"
 	"
 }
 
@@ -92,7 +92,7 @@ defineHome() {
 listdb() {
 	cd "$PPASSDB_HOME" || 
 	{ echo "ppassdb home doesn't exist" && exit 1 ; } 
-	echo "$0 Home Directory:"
+	echo "${0##*/} Home Directory:"
 	pwd
 	{
 		[ "$(find ./ | wc -l)" -eq 1 ] && 
