@@ -110,7 +110,7 @@ checkArgs() {
 	[ -n "$iD" ] && iD=$(echo "$iD" | sed "s/^\/*//g")
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && 
-	echo "No name was specified. Please use -n option" && exit 1
+	echo "No name was specified. Please use -f option" && exit 1
 	fileName=$(echo "$fileName" | sed "s/\//_/g" )
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
 	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && 
