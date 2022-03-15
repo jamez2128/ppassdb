@@ -255,7 +255,7 @@ decryption() {
 	checkDependecies "$@"
 	checkArgs "$@"
 	decryptedFile=$(mktemp -u)
-	gpg --no-symkey-cache -o "$decryptedFile" "$inputFile" || exit 1
+	gpg -d --no-symkey-cache -o "$decryptedFile" "$inputFile" || exit 1
 	textToCopy=$(head -n 1 "$decryptedFile")
 	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption 
