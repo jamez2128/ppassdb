@@ -28,14 +28,15 @@ Specific for -E only:
 -g	 Auto generates a random string and encrypts it.
 
 Specific to both -D and -E:
+-c	Clears the clipboard after a period of time.
+-f	This will be the input file name. \"/\" are not allowed in this 
+	option and will be replaced with \"_\" if present.
 -i	An identifier to group encrypted files. This is optional and if 
 	this option is not called, it will use the default folder.
--n	This will be the input file name. \"/\" are not allowed in this 
-	option and will be replaced with \"_\" if present.
--c	Clears the clipboard after a period of time.
 -s	Shows the text. This will return a successful exit status even if 
 	the clipboard failed.
 -j	Puts text to the generated html to copy it from the browser.
+-n	Puts feedback messages to notifications
 
 Examples:
 Lists all encrypted file
@@ -96,7 +97,7 @@ listdb() {
 	pwd
 	{
 		[ "$(find ./ | wc -l)" -eq 1 ] && 
-		echo "There are no encrypted files added yet" &&
+		$message "There are no encrypted files added yet" &&
 		exit 1
 	} || 
 	{
@@ -176,7 +177,7 @@ showText() { echo &&  echo "$textToCopy" && echo ; }
 clearClipboard() {
 	[ -n "$clipboard" ] && 
 	{
-		echo "Clearing the clipboard in $clearClipboardTime seconds"
+		$message "Clearing the clipboard in $clearClipboardTime seconds"
 		sleep $clearClipboardTime && head /dev/null | $clipboard &
 	}
 }
@@ -209,13 +210,13 @@ copyToClipboard() {
 	[ -n "$clipboard" ] &&
 	{
 		echo "$textToCopy" | tr -d "\n" | $clipboard &&
-		echo "Copied to Clipboard sucessfully"
+		$message "Copied to Clipboard sucessfully"
 	}
 
 	$clearClipOption
 	
 	[ -z "$clipboard" ] &&
-	echo "Could not find any clipboards" && 
+	$message "Could not find any clipboards" && 
 	[ -z "$showTextOption" ] && 
 	[ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
 }
@@ -281,7 +282,7 @@ esac
 
 numOfOperations=0
 OPTIND=1
-while getopts ":hEDLcsji:n:g" OPTION; do
+while getopts ":hEDLcsji:f:gn" OPTION; do
 	case $OPTION in
 		h) help "$@" ; exit ;;
 		D) numOfOperations=$((numOfOperations+1))
@@ -297,12 +298,14 @@ while getopts ":hEDLcsji:n:g" OPTION; do
 		s) showTextOption='showText "$@"' ;;
 		j) javaScriptOption='makeJavaScript "$@"' ;;
 		i) iD="$OPTARG" ;;
-		n) fileName="$OPTARG" ;;
+		f) fileName="$OPTARG" ;;
 		g) generateRandomTextOption='generateRandomText "$@"' ;;
+		n) command -v notify-send > /dev/null && message="notify-send" ;;
 		*) unknownOption="1" ; echo "-$OPTARG is an unknown option"
 		;;
 	esac
 done
+[ -z "$message" ] && message="echo"
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && 
 echo "Only one operation can be used at a time" && exit 1
