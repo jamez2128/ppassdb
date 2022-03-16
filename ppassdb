@@ -60,6 +60,7 @@ searchHome() {
 	androidPath="/storage/emulated/0"
 	windowsPath="$APPDATA"
 	gnuLinuxPath="$HOME/.local/share"
+	macPath="$HOME/Library/Application Support"
 	xdgPath="$XDG_DATA_HOME"
 	
 	if [ -d "$androidPath/$dirName"  ] ; then
@@ -68,11 +69,11 @@ searchHome() {
 		PPASSDB_HOME="$androidPath/$dirName"
 	elif [ -d "$windowsPath/$dirName" ] ; then
 		PPASSDB_HOME="$windowsPath/$dirName"
+	elif [ -d "$macPath/$dirName" ] ; then PPASSDB_HOME="$macPath/$dirName"
 	elif [ -d "$HOME/.$dirName" ] ; then PPASSDB_HOME="$HOME/.$dirName"
 	elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath/$dirName" ]
 	then PPASSDB_HOME="$gnuLinuxPath/$dirName"
-	elif [ -d "$xdgPath/$dirName" ] ; then
-		PPASSDB_HOME="$xdgPath/$dirName"
+	elif [ -d "$xdgPath/$dirName" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
 	else defineHome "$@"
 	fi
 }
@@ -80,6 +81,7 @@ searchHome() {
 defineHome() {
 	if [ -d "$androidPath" ] ; then PPASSDB_HOME="$androidPath/$dirName"
 	elif [ -d "/c/Windows" ] ; then PPASSDB_HOME="$windowsPath/$dirName"
+	elif [ -d "$macPath" ] ; then PPASSDB_HOME="$macPath/$dirName"
 	elif [ -n "$XDG_DATA_HOME" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
 	elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath" ] ; then
 		PPASSDB_HOME="$gnuLinuxPath/$dirName"
@@ -87,7 +89,7 @@ defineHome() {
 		PPASSDB_HOME="$HOME/.$dirName"
 	else PPASSDB_HOME="$(pwd)/$dirName"
 	fi
-  mkdir -p "$PPASSDB_HOME"
+	mkdir -p "$PPASSDB_HOME"
 }
 
 listdb() {
@@ -223,7 +225,7 @@ copyToClipboard() {
 
 generateRandomText() { 
 	LC_CTYPE=C
-	textToEncrypt=$(tr -dc "[:alnum:]" < /dev/urandom | fold -w 50 | 
+	textToEncrypt=$(tr -dc "[:graph:]" < /dev/urandom | fold -w 50 | 
 	head -n 1)
 }
 
