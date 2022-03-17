@@ -59,6 +59,8 @@ ppassdb <operation> [options] <filename>
 - `-L`              Lists all the added encrypted text files.
 
 ## Options
+- `-n`      Pushes feedback messages to notifications (Only works on Linux)
+
 ### Specific for `-E` only:
 - `-g`       Auto generates a random string and encrypts it.
 
@@ -71,7 +73,6 @@ ppassdb <operation> [options] <filename>
 - `-s`      Shows the text. This will return a successful exit status even if 
         the clipboard failed.
 - `-j`      Puts text to the generated html to copy it from the web browser.
-- `-n`      Pushes feedback messages to notifications (Only works on Linux)
 
 ## Examples
 Lists all encrypted file:
