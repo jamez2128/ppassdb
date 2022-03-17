@@ -113,3 +113,22 @@ If you want to know all the possible locations, it is listed below
 - `~/.local/share/ppassdb`
 - `~/.ppassdb`
 - Current directory
+
+### Changing Directory Locations:
+You also change the location of the script by editing directly in
+the script's variable in the Configuration part, or exporting "PPASSDB_HOME" as 
+an environmental variable. For example:
+- Change to Home Directory:
+```
+export PPASSDB_HOME="$HOME/.ppassdb"
+```
+
+- Change to XDG Base Directory
+```
+export PPASSDB_HOME="$HOME/.local/share/ppassdb"
+```
+
+or this (Must have XDG_DATA_HOME defined)
+```
+export PPASSDB_HOME="$XDG_DATA_HOME/ppassdb"
+```
