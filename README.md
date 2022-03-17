@@ -35,7 +35,7 @@ If you think that it is safe to delete, run this command:
 ```
 rm -r "$(ppassdb -L | sed -n 2p)"
 ```
-### Uninstall ppassdb
+### Uninstall ppassdb:
 ```
 rm ppassdb /usr/local/bin
 ```
