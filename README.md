@@ -52,13 +52,13 @@ chmod +x ./ppassdb
 ppassdb <operation> [options] <filename>
 ```
 
-## Operations:
+## Operations
 - `-h`, `--help`      To shows this help message
 - `-E`              For adding and encryting text files.
 - `-D`              For decrypting text file.
 - `-L`              Lists all the added encrypted text files.
 
-## Options:
+## Options
 ### Specific for `-E` only:
 - `-g`       Auto generates a random string and encrypts it.
 
@@ -73,7 +73,7 @@ ppassdb <operation> [options] <filename>
 - `-j`      Puts text to the generated html to copy it from the web browser.
 - `-n`      Pushes feedback messages to notifications (Only works on Linux)
 
-## Examples:
+## Examples
 Lists all encrypted file:
 ```
 ppassdb -L
@@ -89,7 +89,7 @@ Decrypts the password and put it into the system clipboard and clears for a peri
 ppassdb -Dc -i "username" -f "website.pass"
 ```
 
-## Directory Location:
+## Directory Location
 If you want to know where the script saves the files, run this command:
 ```
 ppassdb -L | sed -n 2p
