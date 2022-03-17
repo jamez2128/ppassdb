@@ -96,7 +96,7 @@ ppassdb -L | sed -n 2p
 ```
 If you want to know all the possible locations, it is listed below
 
-## Priorities for searching existed directories:
+### Priorities for searching existed directories:
 - `/storage/emulated/0/ppassdb`
 - `$APPDATA/ppassdb`
 - `~/Library/Application Support/ppassdb`
@@ -104,7 +104,7 @@ If you want to know all the possible locations, it is listed below
 - `~/.local/share/ppassdb`
 - `$XDG_DATA_HOME/ppassdb`
 
-## Priorities for initializing directories:
+### Priorities for initializing directories:
 - `/storage/emulated/0/ppassdb`
 - `$APPDATA/ppassdb`
 - `~/Library/Application Support/ppassdb`
