@@ -228,7 +228,6 @@ decryption() {
 echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" &&
 exit  
 
-[ -n "$PPASSDB_HOME" ] && PPASSDB_HOME="$PPASSDB_HOME/$dirName"
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome "$@"
 
