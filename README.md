@@ -21,7 +21,7 @@
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/ppassdb
 ```
-For system-wide installation, put the script to `/usr/local/bin` (Need root privileges in Linux)
+For system-wide installation, put the script to `/usr/local/bin` (Need root privileges in Linux):
 ```
 cp ppassdb /usr/local/bin
 ```
