@@ -1,5 +1,4 @@
 ## Depedencies
-### Global:
 - `gpg`
 
 ### Optional:
@@ -26,6 +25,12 @@ For system-wide installation, put the script to `/usr/local/bin` (Need root priv
 cp ppassdb /usr/local/bin
 ```
 
+If the script doesn't run, make sure that you that the file has
+permissions to run. To give it execution permissions:
+```
+chmod +x ./ppassdb
+```
+
 ## Uninstallation
 If you want to know where the script saves the files and you want to delete it, run this command:
 ```
@@ -40,13 +45,6 @@ rm -r "$(ppassdb -L | sed -n 2p)"
 rm ppassdb /usr/local/bin
 ```
 
-## Examples
-
-If the script doesn't run, make sure that you that the file has
-permissions to run. To give it execution permissions:
-```
-chmod +x ./ppassdb
-```
 ## Usage
 ```
 ppassdb <operation> [options] <filename>
