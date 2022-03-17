@@ -35,7 +35,7 @@ Specific to both -D and -E:
 	this option is not called, it will use the default folder.
 -s	Shows the text. This will return a successful exit status even if 
 	the clipboard failed.
--j	Puts text to the generated html to copy it from the wev browser.
+-j	Puts text to the generated html to copy it from the web browser.
 -n	Pushes feedback messages to notifications (Only works on Linux)
 
 Examples:
