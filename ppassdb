@@ -143,8 +143,7 @@ EOF
 	{
 		case "$oS" in
 			"Windows") start "$javaScriptPath" ;;
-			"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && 
-			xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
+			"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
 			*) command -v open > /dev/null 2>&1 && open "$javaScriptPath" ;;
 		esac
 		echo "Your decrypted file is in file://$javaScriptPath"
@@ -172,11 +171,11 @@ copyToClipboard() {
 	case $oS in
 		"Windows") clipboard="clip.exe" ;;	
 		"Android") command -v "termux-clipboard-set" > /dev/null 2>&1 && clipboard="termux-clipboard-set" ;;	
-		"GNU/Linux") 
+		*)
 			{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" ; } ||
-			{ command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; }
-		;;	
-		*) command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ;;
+			{ command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; } ||
+			{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ; }
+		;;
 	esac
 
 	[ -n "$clipboard" ] && { echo "$textToCopy" | tr -d "\n" | $clipboard && $message "Copied to Clipboard sucessfully" ; }
