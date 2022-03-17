@@ -48,6 +48,9 @@ ${0##*/} -E -i \"username\" -f \"website.pass\"
 Decrypts the password and put it into the system clipboard and clears for a 
 period of time:
 ${0##*/} -Dc -i \"username\" -f \"website.pass\"
+
+For full documentation, Refer to the README.md file at
+https://github.com/jamez2128/ppassdb/blob/master/README.md
 	"
 }
 

@@ -1,17 +1,18 @@
-## Global Dependencies:
+## Depedencies
+### Global:
 - `gpg`
 
-## Optional Dependecies:
+## Optional:
 - `tree`
 - `notify-send`
 
-## Dependencies for GNU/Linux:
+### GNU/Linux:
 - `xclip` or `wl-copy`
 
-## Dependencies for Windows:
+### Windows:
 - `Bash` (Either `Git bash` or `WSL`)
 
-## Dependecies for Android:
+### Android:
 - `Termux`
 - `Termux: API`
 
@@ -47,7 +48,7 @@ permissions to run. To give it execution permissions:
 ```
 chmod +x ./ppassdb
 ```
-## Usage:
+## Usage
 ```
 ppassdb <operation> [options] <filename>
 ```
@@ -74,20 +75,27 @@ ppassdb <operation> [options] <filename>
 - `-n`      Pushes feedback messages to notifications (Only works on Linux)
 
 ## Examples:
-### Lists all encrypted file
+Lists all encrypted file:
 ```
 ppassdb -L
 ```
 
-### Encrypt a text
+Encrypt a text:
 ```
 ppassdb -E -i "username" -f "website.pass" 
 ```
 
-### Decrypts the password and put it into the system clipboard and clears for a period of time:
+Decrypts the password and put it into the system clipboard and clears for a period of time:
 ```
 ppassdb -Dc -i "username" -f "website.pass"
 ```
+
+## Directory Location:
+If you want to know where the script saves the files, run this command:
+```
+ppassdb -L | sed -n 2p
+```
+If you want to know all the possible locations, it is listed below
 
 ## Priorities for searching existed directories:
 - `/storage/emulated/0/ppassdb`
