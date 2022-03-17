@@ -2,7 +2,7 @@
 ### Global:
 - `gpg`
 
-## Optional:
+### Optional:
 - `tree`
 - `notify-send`
 
