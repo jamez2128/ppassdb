@@ -51,10 +51,7 @@ ${0##*/} -Dc -i \"username\" -n \"website.pass\"
 	"
 }
 
-checkDependecies() { 
-	! command -v gpg > /dev/null 2>&1 &&
-	echo "gnupg is not installed" && exit 127
-}
+checkDependecies() { ! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127 ; }
 
 searchHome() {
 	androidPath="/storage/emulated/0"
@@ -64,8 +61,7 @@ searchHome() {
 	xdgPath="$XDG_DATA_HOME"
 	
 	if [ -d "$androidPath/$dirName"  ] ; then
-		[ ! -w "$androidPath" ] && 
-		echo "You don't have write permissions in Termux" && exit 1
+		[ ! -w "$androidPath" ] && echo "You don't have write permissions in Termux" && exit 1
 		PPASSDB_HOME="$androidPath/$dirName"
 	elif [ -d "$windowsPath/$dirName" ] ; then
 		PPASSDB_HOME="$windowsPath/$dirName"
@@ -93,32 +89,21 @@ defineHome() {
 }
 
 listdb() {
-	cd "$PPASSDB_HOME" || 
-	{ echo "ppassdb home doesn't exist" && exit 1 ; } 
+	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 2 ; } 
 	echo "${0##*/} Home Directory:"
 	pwd
-	{
-		[ "$(find ./ | wc -l)" -eq 1 ] && 
-		$message "There are no encrypted files added yet" &&
-		exit 1
-	} || 
-	{
-		{ command -v "tree" > /dev/null 2>&1 && tree -aR ; } ||
-		{ printf "ID's: " && ls -AR ; }	 
-	}
+	{ [ "$(find ./ | wc -l)" -eq 1 ] && $message "There are no encrypted files added yet" && exit 1 ; } || 
+	{ { command -v "tree" > /dev/null 2>&1 && tree -aR ; } || { printf "ID's: " && ls -AR ; } ; }
 }
 
 checkArgs() {
 	[ -n "$iD" ] && iD=$(echo "$iD" | sed "s/^\/*//g")
 	[ -z "$iD" ] && iD="default"
-	[ -z "$fileName" ] && 
-	echo "No name was specified. Please use -f option" && exit 1
+	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" && exit 1
 	fileName=$(echo "$fileName" | sed "s/\//_/g" )
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
-	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && 
-	mkdir -p "$PPASSDB_HOME/$iD"
-	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] &&
-	{ echo "There is no input file" && exit 1 ; }
+	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
+	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" && exit 1 ; }
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -130,7 +115,7 @@ makeJavaScript() {
 	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
 		javaScriptPath="/storage/emulated/0/$fileNameOnly}"
 	elif [ "$oS" = "Android" ] ; then
-		javaScriptPath=""
+		unset javaScriptPath
 		echo "You don't have write permissions in Termux" 
 		[ -z "$showTextOption" ] && { cleanUp "$@" ; exit 1 ; }
 	fi
@@ -158,11 +143,9 @@ EOF
 	{
 		case "$oS" in
 			"Windows") start "$javaScriptPath" ;;
-			"GNU/Linux") command -v xdg-open >\
-				/dev/null 2>&1 && 
+			"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && 
 			xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
-			*) command -v open > /dev/null 2>&1 && open\
-			       "$javaScriptPath" ;;
+			*) command -v open > /dev/null 2>&1 && open "$javaScriptPath" ;;
 		esac
 		echo "Your decrypted file is in file://$javaScriptPath"
 		[ "$oS" = "Android" ] && 
@@ -188,68 +171,40 @@ copyToClipboard() {
 # Clipboards by OS'
 	case $oS in
 		"Windows") clipboard="clip.exe" ;;	
-		"Android")
-			command -v "termux-clipboard-set" >\
-			/dev/null 2>&1 &&
-			clipboard="termux-clipboard-set" 
-		;;	
+		"Android") command -v "termux-clipboard-set" > /dev/null 2>&1 && clipboard="termux-clipboard-set" ;;	
 		"GNU/Linux") 
-			{
-				[ -n "$WAYLAND_DISPLAY" ] && 
-				command -v wl-copy > /dev/null 2>&1 &&
-				clipboard="wl-copy"
-			} ||
-			{
-				command -v xclip > /dev/null 2>&1 &&
-				clipboard="xclip -selection clipboard"
-			}
+			{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" ; } ||
+			{ command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; }
 		;;	
-		*) command -v pbcopy > /dev/null 2>&1 &&
-			clipboard="pbcopy"
-		;;
+		*) command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ;;
 	esac
 
-	[ -n "$clipboard" ] &&
-	{
-		echo "$textToCopy" | tr -d "\n" | $clipboard &&
-		$message "Copied to Clipboard sucessfully"
-	}
+	[ -n "$clipboard" ] && { echo "$textToCopy" | tr -d "\n" | $clipboard && $message "Copied to Clipboard sucessfully" ; }
 
 	$clearClipOption
 	
 	[ -z "$clipboard" ] &&
 	$message "Could not find any clipboards" && 
-	[ -z "$showTextOption" ] && 
-	[ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
+	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
 }
 
-generateRandomText() { 
-	LC_CTYPE=C
-	textToEncrypt=$(tr -dc "[:graph:]" < /dev/urandom | fold -w 50 | 
-	head -n 1)
-}
+generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "[:graph:]" < /dev/urandom | fold -w 50 | head -n 1) ; }
 
 encryption() {
 	checkDependecies "$@"
 	checkArgs "$@"
-	if [ -n "$generateRandomTextOption" ]; then
-		$generateRandomTextOption
+	if [ -n "$generateRandomTextOption" ]; then $generateRandomTextOption
 	else
 		stty -echo
-		printf "Enter text to encrypt: " && read -r textToEncrypt
-		echo
-		printf "Enter the same text again: " && read -r confirmText
+		printf "Enter text to encrypt: " && read -r textToEncrypt ; echo
+		printf "Enter the same text again: " && read -r confirmText ; echo	
 		stty echo
-		echo
-		[ "$textToEncrypt" = "$confirmText" ]	|| 
-		{ echo "Texts do not match" && exit 1 ; }
+		[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
 	fi
 	echo "$textToEncrypt" | tr -d "\n" |
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" ||
-	exit 1
+	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" || exit 1
 	textToCopy="$textToEncrypt"
-	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] &&
-	copyToClipboard "$@"
+	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption
 	$showTextOption
 }
@@ -278,10 +233,10 @@ exit
 #OS Detection
 { [ -d "/c/Windows" ] && oS="Windows" ; } || 
 {
-case "$(uname)" in
-	*Linux) oS=$(uname -o) ;; 
-	*) oS=$(uname) ;; 
-esac
+	case "$(uname)" in
+		*Linux) oS=$(uname -o) ;; 
+		*) oS=$(uname) ;; 
+	esac
 }
 
 numOfOperations=0
@@ -289,15 +244,9 @@ OPTIND=1
 while getopts ":hEDLcsji:f:gn" OPTION; do
 	case $OPTION in
 		h) help "$@" ; exit ;;
-		D) numOfOperations=$((numOfOperations+1))
-			operation=decrypt
-		;;
-		E) numOfOperations=$((numOfOperations+1))
-			operation=encrypt
-		;;
-		L) numOfOperations=$((numOfOperations+1))
-			operation=list
-		;;
+		D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
+		E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
+		L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
 		c) clearClipOption='clearClipboard "$@"' ;;
 		s) showTextOption='showText "$@"' ;;
 		j) javaScriptOption='makeJavaScript "$@"' ;;
@@ -305,8 +254,7 @@ while getopts ":hEDLcsji:f:gn" OPTION; do
 		f) fileName="$OPTARG" ;;
 		g) generateRandomTextOption='generateRandomText "$@"' ;;
 		n) command -v notify-send > /dev/null && message="notify-send" ;;
-		*) unknownOption="1" ; echo "-$OPTARG is an unknown option"
-		;;
+		*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
 [ -z "$message" ] && message="echo"
