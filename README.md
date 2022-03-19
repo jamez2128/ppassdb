@@ -29,7 +29,7 @@ use the web browser instead.
 		- [Specific for `-E` only](#e-only)
 		- [Specific to both `-D` and `-E`](#d-and-e)
 	- [Examples](#Examples)
-		- [Lists all encrypted file:](#example-1)
+		- [Lists all encrypted file](#example-1)
 		- [Encrypt a text](#example-2)
 		- [Decrypts the password and put it into the system clipboard and clears for a period of time](#example-3)
 - [Directory location](#directory-location)
