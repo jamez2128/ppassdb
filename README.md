@@ -19,7 +19,7 @@ use the web browser instead.
 	- [Android](#Android)
 	- [Installation](Installation)
 - [Installation](#Installation)
-	- [ppassdb](#ppassdb)
+	- [ppassdb](#install-ppassdb)
 - [Uninstallation](#Uninstallation)
 	- [Remove encrypted all files](#remove-enrypted-files)
 	- [Uninstall ppassdb](#uninstall-ppassdb)
@@ -56,7 +56,7 @@ use the web browser instead.
 - `Termux: API`
 
 ## Installation
-### `ppassdb`:
+### <a name=install-ppassdb></a> `ppassdb`:
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/ppassdb
 ```
