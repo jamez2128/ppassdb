@@ -1,8 +1,9 @@
-# ppassdb
+# `ppassdb`
 - It is posix compliant shell script that manages encrypted single line text files.
 - It is a discount, inferior, and a rip-off version of [password-store](https://www.passwordstore.org/).
 - It uses `gpg` to encrypt files.
 - Aims for portability so you can store them in a USB drive
+and it is easy to backup
 - Designed to work on most Operating Systems including Android
 - It encrypts indivdual text files in a single line and encrypts them
 indivdually, meaning every file can have different master passwords and
@@ -10,6 +11,12 @@ it is not required to create a `gpg` keypair
 - Puts the encrypted text to clipboard after decryption
 - If the script doesn't support the clipboard, there is an option to
 use the web browser instead.
+
+# `dpassmenu`
+- A simple dmenu script that decrypts files to clipboard with
+ppassdb that I definetely not copied from the [password-store](https://www.passwordstore.org/)
+devs.
+- Very powerful script especially if binded on a keyboard
 
 ## Table of Contents
 - [Depedencies](#Depedencies)
@@ -19,9 +26,11 @@ use the web browser instead.
 	- [Android](#Android)
 - [Installation](#Installation)
 	- [ppassdb](#install-ppassdb)
+	- [dpassmenu](#install-dpassmenu)
 - [Uninstallation](#Uninstallation)
-	- [Remove encrypted all files](#remove-enrypted-files)
+	- [Remove encrypted all files](#remove-encrypted-files)
 	- [Uninstall ppassdb](#uninstall-ppassdb)
+	- [Uninstall dpassmenu](#uninstall-dpassmenu)
 - [Run](#Run)
 	- [Usage](#Usage)
 	- [Operations](#Operations)
@@ -46,6 +55,7 @@ use the web browser instead.
 
 ### <a name=gnu-linux></a> GNU/Linux:
 - `xclip` or `wl-copy`
+- `dmenu` (`dpassmenu`)
 
 ### Windows:
 - `Bash` (Either `Git bash` or `WSL`)
@@ -63,11 +73,23 @@ For system-wide installation, put the script to `/usr/local/bin` (Need root priv
 ```
 cp ppassdb /usr/local/bin
 ```
+### <a name=install-dpassmenu></a>`dpassmenu`
+```
+curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/dpassmenu
+```
+For installation, same thing above:
+```
+cp dpassmenu /usr/local/bin
+```
 
 If the script doesn't run, make sure that you that the file has
 permissions to run. To give it execution permissions:
 ```
 chmod +x ./ppassdb
+```
+same thing for `dpassmenu`:
+```
+chmod +x ./dpassmenu
 ```
 
 ## Uninstallation
@@ -76,13 +98,17 @@ If you want to know where the script saves the files and you want to delete it, 
 ppassdb -L | sed -n 2p
 ```
 If you think that it is safe to delete, run this command:
-### <a name="remove-enrypted-files"></a> Remove encrypted all files:
+### <a name="remove-encrypted-files"></a> Remove encrypted all files:
 ```
 rm -r "$(ppassdb -L | sed -n 2p)"
 ```
-### <a name="uninstall-ppassdb"></a>Uninstall ppassdb:
+### <a name="uninstall-ppassdb"></a>Uninstall `ppassdb`:
 ```
-rm ppassdb /usr/local/bin
+rm  /usr/local/bin/ppassdb
+```
+## <a name=uninstall-dpassmenu></a> Uninstall `dpassmenu`:
+```
+rm /usr/local/bin/dpassmenu
 ```
 ## Run
 ### Usage

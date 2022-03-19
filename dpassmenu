@@ -1,0 +1,34 @@
+#!/bin/sh
+#A simple dmenu script for ppassdb
+
+#This variable is defined to the name of the main script
+#if you renamed the script, make sure it is the same as this variable
+scriptName="ppassdb" 
+
+#Checks for dependencies
+command -v $scriptName > /dev/null || scriptName="./$scriptName"
+command -v $scriptName > /dev/null ||
+{ notify-send "The ${scriptName##*/} script could not be found" && exit 127 ; }
+command -v dmenu > /dev/null || { notify-send "dmenu is not installed" && exit 127 ; }
+
+#Exit the script if dmenu is already running
+pgrep -x dmenu && exit 1
+
+#Exit the script if it does not found any encrypted files
+$scriptName -Ln > /dev/null || exit 1
+
+#Gets the path of the encrypted files
+ppassdbHOME="$($scriptName -Ln | sed -n "2p")"
+
+#Stops the loop until it finds a file
+unset prompt
+while [ -d "$ppassdbHOME/$prompt" ] ; do
+	#If the directory is empty, it will exit the script
+	[ "$(find "$ppassdbHOME/$prompt" -maxdepth 1 | wc -l)" -eq 1 ] && 
+	{ notify-send "There is nothing in this directory" && exit 1 ; }
+	prompt="$prompt/$(find "$ppassdbHOME/$prompt" -maxdepth 1 -printf "%P\n" | sed "/^$/d" | dmenu)" || exit 1
+done
+
+#The decryption part
+$scriptName -Dcn -i "${prompt%/*}" -f "${prompt##*/}" || 
+{ notify-send "Decryption failed" ; exit 1 ; }
