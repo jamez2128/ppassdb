@@ -1,3 +1,38 @@
+# ppassdb
+- It is posix compliant shell script that manages encrypted single line text files.
+- It is a discount, inferior, and a rip-off version of `[password-store](https://www.passwordstore.org/)`.
+- It uses gpg to encrypt files.
+- It encrypts indivdual text files in a single line and encrypts them
+indivdually. meaning every file can have different master passwords and
+it is not required to create a gpg keypair.
+
+## Table of Contents
+- [Depedencies](#Depedencies)
+	- [Optional](#Optional)
+	- [GNU/Linux](#GNU/Linux)
+	- [Windows](#Windows)
+	- [Android](#Android)
+	- [Installation](Installation)
+- [Installation](#Installation)
+	- [ppassdb](#ppassdb)
+- [Uninstallation](#Uninstallation)
+	- [Remove encrypted all files](#remove-enrypted-files)
+	- [Uninstall ppassdb](#uninstall-ppassdb)
+- [Run](#Run)
+	- [Usage](#Usage)
+	- [Operations](#Operations)
+	- [Options](#Options)
+	- [Specific for `-E` only:](#e-only)
+	- [Specific to both `-D` and `-E`:](#d-and-e)
+	- [Examples](#Examples)
+	- [Lists all encrypted file:](#example-1)
+	- [Encrypt a text](#example-2)
+	- [Decrypts the password and put it into the system clipboard and clears for a period of time](#example-3)
+- [Directory location](#directory-location)
+	- [Priorities for searching existed directories](#search-directory) 
+	- [Priorities for initializing directories](#initialize-directory) 
+	- [Changing Directory Locations](#change-directory) 
+
 ## Depedencies
 - `gpg`
 
@@ -16,7 +51,7 @@
 - `Termux: API`
 
 ## Installation
-### ppassdb:
+### `ppassdb`:
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/ppassdb
 ```
@@ -37,32 +72,33 @@ If you want to know where the script saves the files and you want to delete it, 
 ppassdb -L | sed -n 2p
 ```
 If you think that it is safe to delete, run this command:
+### <a name="remove-enrypted-files"></a> Remove encrypted all files:
 ```
 rm -r "$(ppassdb -L | sed -n 2p)"
 ```
-### Uninstall ppassdb:
+### <a name="uninstall-ppassdb"></a>Uninstall ppassdb:
 ```
 rm ppassdb /usr/local/bin
 ```
-
-## Usage
+## Run
+### Usage
 ```
 ppassdb <operation> [options] <filename>
 ```
 
-## Operations
+### Operations
 - `-h`, `--help`      To shows this help message
 - `-E`              For adding and encryting text files.
 - `-D`              For decrypting text file.
 - `-L`              Lists all the added encrypted text files.
 
-## Options
+### Options
 - `-n`      Pushes feedback messages to notifications (Only works on Linux)
 
-### Specific for `-E` only:
+#### <a name="e-only"></a>Specific for `-E` only:
 - `-g`       Auto generates a random string and encrypts it.
 
-### Specific to both `-D` and `-E`:
+#### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
 - `-c`      Clears the clipboard after a period of time.
 - `-f`      This will be the input file name. "/" are not allowed in this 
         option and will be replaced with "_" if present.
@@ -72,30 +108,30 @@ ppassdb <operation> [options] <filename>
         the clipboard failed.
 - `-j`      Puts text to the generated html to copy it from the web browser.
 
-## Examples
-Lists all encrypted file:
+### Examples
+#### <a name="example-1"></a> Lists all encrypted file:
 ```
 ppassdb -L
 ```
 
-Encrypt a text:
+#### <a name="example-2"></a>Encrypt a text:
 ```
 ppassdb -E -i "username" -f "website.pass" 
 ```
 
-Decrypts the password and put it into the system clipboard and clears for a period of time:
+#### <a name="example-3"></a>Decrypts the password and put it into the system clipboard and clears for a period of time:
 ```
 ppassdb -Dc -i "username" -f "website.pass"
 ```
 
-## Directory Location
+##  <a name="directory-location"></a>Directory Location
 If you want to know where the script saves the files, run this command:
 ```
 ppassdb -L | sed -n 2p
 ```
 If you want to know all the possible locations, it is listed below
 
-### Priorities for searching existed directories:
+###  <a name="searh-directory"></a>Priorities for searching existed directories:
 - `/storage/emulated/0/ppassdb`
 - `$APPDATA/ppassdb`
 - `~/Library/Application Support/ppassdb`
@@ -103,7 +139,7 @@ If you want to know all the possible locations, it is listed below
 - `~/.local/share/ppassdb`
 - `$XDG_DATA_HOME/ppassdb`
 
-### Priorities for initializing directories:
+###  <a name="initialize-directory"></a>Priorities for initializing directories:
 - `/storage/emulated/0/ppassdb`
 - `$APPDATA/ppassdb`
 - `~/Library/Application Support/ppassdb`
@@ -112,7 +148,7 @@ If you want to know all the possible locations, it is listed below
 - `~/.ppassdb`
 - Current directory
 
-### Changing Directory Locations:
+### <a name="change-directory"></a> Changing Directory Locations:
 You also change the location of the script by editing directly in
 the script's variable in the Configuration part, or exporting "PPASSDB_HOME" as 
 an environmental variable. For example:
@@ -130,3 +166,6 @@ or this (Must have XDG_DATA_HOME defined)
 ```
 export PPASSDB_HOME="$XDG_DATA_HOME/ppassdb"
 ```
+It is recommended to set the environmental variable so it does need to check
+for directories evertime the script runs. You have to suffix an empty directory
+or the directory that has files made by the script.

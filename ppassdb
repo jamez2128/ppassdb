@@ -6,7 +6,7 @@ clearClipboardTime=15
 deleteJavaScriptTime=30
 dirName="${0##*/}"
 ##Uncomment to override the script's home directory
-#PPASSDB_HOME="." 
+#PPASSDB_HOME="./${0##*/}" 
 
 #==========================================================================#
 
