@@ -106,7 +106,7 @@ rm -r "$(ppassdb -L | sed -n 2p)"
 ```
 rm  /usr/local/bin/ppassdb
 ```
-### <a name=uninstall-dpassmenu></a> Uninstall `dpassmenu`:
+### <a name=uninstall-dpassmenu></a> Uninstall `dpassmenu:`:
 ```
 rm /usr/local/bin/dpassmenu
 ```
