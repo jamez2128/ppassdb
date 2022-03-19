@@ -17,7 +17,6 @@ use the web browser instead.
 	- [GNU/Linux](#gnu-linux)
 	- [Windows](#Windows)
 	- [Android](#Android)
-	- [Installation](Installation)
 - [Installation](#Installation)
 	- [ppassdb](#install-ppassdb)
 - [Uninstallation](#Uninstallation)
