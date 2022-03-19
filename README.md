@@ -5,7 +5,7 @@
 - Aims for portability so you can store them in a USB drive
 - Designed to work on most Operating Systems including Android
 - It encrypts indivdual text files in a single line and encrypts them
-indivdually. meaning every file can have different master passwords and
+indivdually, meaning every file can have different master passwords and
 it is not required to create a `gpg` keypair
 - Puts the encrypted text to clipboard after decryption
 - If the script doesn't support the clipboard, there is an option to
