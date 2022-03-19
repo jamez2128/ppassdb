@@ -14,7 +14,7 @@ use the web browser instead.
 
 # `dpassmenu`
 - A simple dmenu script that decrypts files to clipboard with
-ppassdb that I definetely not copied from the [password-store](https://www.passwordstore.org/)
+ppassdb that I definitely not copied from the [password-store](https://www.passwordstore.org/)
 devs.
 - Very powerful script especially if binded on a keyboard
 
@@ -106,7 +106,7 @@ rm -r "$(ppassdb -L | sed -n 2p)"
 ```
 rm  /usr/local/bin/ppassdb
 ```
-## <a name=uninstall-dpassmenu></a> Uninstall `dpassmenu`:
+### <a name=uninstall-dpassmenu></a> Uninstall `dpassmenu`:
 ```
 rm /usr/local/bin/dpassmenu
 ```
