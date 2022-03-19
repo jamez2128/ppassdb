@@ -22,8 +22,8 @@ it is not required to create a gpg keypair.
 	- [Usage](#Usage)
 	- [Operations](#Operations)
 	- [Options](#Options)
-	- [Specific for `-E` only:](#e-only)
-	- [Specific to both `-D` and `-E`:](#d-and-e)
+	- [Specific for `-E` only](#e-only)
+	- [Specific to both `-D` and `-E`](#d-and-e)
 	- [Examples](#Examples)
 	- [Lists all encrypted file:](#example-1)
 	- [Encrypt a text](#example-2)
@@ -131,7 +131,7 @@ ppassdb -L | sed -n 2p
 ```
 If you want to know all the possible locations, it is listed below
 
-###  <a name="searh-directory"></a>Priorities for searching existed directories:
+###  <a name="search-directory"></a>Priorities for searching existed directories:
 - `/storage/emulated/0/ppassdb`
 - `$APPDATA/ppassdb`
 - `~/Library/Application Support/ppassdb`
