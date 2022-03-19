@@ -1,6 +1,6 @@
 # ppassdb
 - It is posix compliant shell script that manages encrypted single line text files.
-- It is a discount, inferior, and a rip-off version of `[password-store](https://www.passwordstore.org/)`.
+- It is a discount, inferior, and a rip-off version of [password-store](https://www.passwordstore.org/).
 - It uses gpg to encrypt files.
 - It encrypts indivdual text files in a single line and encrypts them
 indivdually. meaning every file can have different master passwords and
