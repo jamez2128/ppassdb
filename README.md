@@ -14,7 +14,7 @@ use the web browser instead.
 ## Table of Contents
 - [Depedencies](#Depedencies)
 	- [Optional](#Optional)
-	- [GNU/Linux](#GNU/Linux)
+	- [GNU/Linux](#gnu-linux)
 	- [Windows](#Windows)
 	- [Android](#Android)
 	- [Installation](Installation)
@@ -45,7 +45,7 @@ use the web browser instead.
 - `tree`
 - `notify-send`
 
-### GNU/Linux:
+### <a name=gnu-linux></a> GNU/Linux:
 - `xclip` or `wl-copy`
 
 ### Windows:
