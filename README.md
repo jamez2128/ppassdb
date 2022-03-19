@@ -73,7 +73,7 @@ For system-wide installation, put the script to `/usr/local/bin` (Need root priv
 ```
 cp ppassdb /usr/local/bin
 ```
-### <a name=install-dpassmenu></a>`dpassmenu`
+### <a name=install-dpassmenu></a>`dpassmenu:`
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/dpassmenu
 ```
@@ -106,7 +106,7 @@ rm -r "$(ppassdb -L | sed -n 2p)"
 ```
 rm  /usr/local/bin/ppassdb
 ```
-### <a name=uninstall-dpassmenu></a> Uninstall `dpassmenu:`:
+### <a name=uninstall-dpassmenu></a> Uninstall `dpassmenu:`
 ```
 rm /usr/local/bin/dpassmenu
 ```
