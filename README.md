@@ -127,11 +127,20 @@ ppassdb <operation> [options] <filename>
 
 #### <a name="e-only"></a>Specific for `-E` only:
 - `-g`       Auto generates a random string and encrypts it.
+- `-a`	Specify the number of characters to randomly generate.
+- `-t`	Specify the type of characters to randomly generate.
+	`[:graph:]` - All printable characters, except whitespace
+	`[:alnum:]` - All letters and numbers
+	`[:alpha:]` - Letters only
+	`[:lower:]` - Capital letters only
+	`[:upper:]` - Small letters only 
+	`[:digit:]` - Numbers only
+	For more options, refer to the tr manual
 
 #### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
 - `-c`      Clears the clipboard after a period of time.
-- `-f`      This will be the input file name. "/" are not allowed in this 
-        option and will be replaced with "_" if present.
+- `-f`      This will be the input file name. `/` are not allowed in this 
+        option and will be replaced with `_` if present.
 - `-i`      An identifier to group encrypted files. This is optional and if 
         this option is not called, it will use the default folder.
 - `-s`      Shows the text. This will return a successful exit status even if 

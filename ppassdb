@@ -5,6 +5,20 @@
 clearClipboardTime=15
 deleteJavaScriptTime=30
 dirName="${0##*/}"
+
+## Number of characters to number randomly generate
+numberOfChars=16
+
+## What type of characters to randomly generate
+## [:graph:] - All printable characters, except whitespace
+## [:alnum:] - All letters and numbers
+## [:alpha:] - Letters only
+## [:lower:] - Capital letters only
+## [:upper:] - Small letters only 
+## [:digit:] - Numbers only
+## For more options, refer to the tr manual
+typeOfChars="[:graph:]"
+
 ##Uncomment to override the script's home directory
 #PPASSDB_HOME="./.${0##*/}" 
 
@@ -18,7 +32,7 @@ help() {
 	usage "$@"
 	echo "
 Operations:
--h, --help	To shows this help message
+-h, --help	To shows this help message.
 -E		For adding and encryting text files.
 -D 		For decrypting text file.
 -L		Lists all the added encrypted text files.
@@ -27,7 +41,16 @@ Options:
 -n	Pushes feedback messages to notifications (Only works on Linux)
 
 Specific for -E only:
--g	 Auto generates a random string and encrypts it.
+-g	Auto generates a random string and encrypts it.
+-a	Specify the number of characters to randomly generate.
+-t	Specify the type of characters to randomly generate.
+	[:graph:] - All printable characters, except whitespace
+bujka	[:alnum:] - All letters and numbers
+	[:alpha:] - Letters only
+	[:lower:] - Capital letters only
+	[:upper:] - Small letters only 
+	[:digit:] - Numbers only
+	For more options, refer to the tr manual
 
 Specific to both -D and -E:
 -c	Clears the clipboard after a period of time.
@@ -146,9 +169,9 @@ EOF
 	[ -n "$javaScriptPath" ] &&
 	{
 		case "$oS" in
-			"Windows") start "$javaScriptPath" ;;
-			"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
-			*) command -v open > /dev/null 2>&1 && open "$javaScriptPath" ;;
+		"Windows") start "$javaScriptPath" ;;
+		"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
+		*) command -v open > /dev/null 2>&1 && open "$javaScriptPath" ;;
 		esac
 		echo "Your decrypted file is in file://$javaScriptPath"
 		[ "$oS" = "Android" ] && 
@@ -173,12 +196,12 @@ clearClipboard() {
 copyToClipboard() {
 # Clipboards by OS'
 	case $oS in
-		"Windows") clipboard="clip.exe" ;;	
-		"Android") command -v "termux-clipboard-set" > /dev/null 2>&1 && clipboard="termux-clipboard-set" ;;	
-		*)
-			{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" ; } ||
-			{ command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; } ||
-			{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ; }
+	"Windows") clipboard="clip.exe" ;;	
+	"Android") command -v "termux-clipboard-set" > /dev/null 2>&1 && clipboard="termux-clipboard-set" ;;	
+	*)
+		{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" ; } ||
+		{ command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; } ||
+		{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ; }
 		;;
 	esac
 
@@ -191,7 +214,7 @@ copyToClipboard() {
 	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
 }
 
-generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "[:graph:]" < /dev/urandom | fold -w 50 | head -n 1) ; }
+generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom | fold -w $numberOfChars | head -n 1) ; }
 
 encryption() {
 	checkDependecies "$@"
@@ -224,49 +247,52 @@ decryption() {
 	cleanUp "$@"
 }
 
-#Start of the script
+# Start of the script
 [ $# -eq 0 ] && noOperation "$@" && exit
-echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" &&
-exit  
+echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exit  
 
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome "$@"
 
-#OS Detection
+# OS Detection
 { [ -d "/c/Windows" ] && oS="Windows" ; } || 
 {
 	case "$(uname)" in
-		*Linux) oS=$(uname -o) ;; 
-		*) oS=$(uname) ;; 
+	*Linux) oS=$(uname -o) ;; 
+	*) oS=$(uname) ;; 
 	esac
 }
 
 numOfOperations=0
 OPTIND=1
-while getopts ":hEDLcsji:f:gn" OPTION; do
+while getopts ":hEDLcsji:f:gnt:a:" OPTION; do
 	case $OPTION in
-		h) help "$@" ; exit ;;
-		D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
-		E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
-		L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
-		c) clearClipOption='clearClipboard "$@"' ;;
-		s) showTextOption='showText "$@"' ;;
-		j) javaScriptOption='makeJavaScript "$@"' ;;
-		i) iD="$OPTARG" ;;
-		f) fileName="$OPTARG" ;;
-		g) generateRandomTextOption='generateRandomText "$@"' ;;
-		n) command -v notify-send > /dev/null && message="notify-send" ;;
-		*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
+	h) help "$@" ; exit ;;
+	D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
+	E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
+	L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
+	c) clearClipOption='clearClipboard "$@"' ;;
+	s) showTextOption='showText "$@"' ;;
+	j) javaScriptOption='makeJavaScript "$@"' ;;
+	i) iD="$OPTARG" ;;
+	f) fileName="$OPTARG" ;;
+	g) generateRandomTextOption='generateRandomText "$@"' ;;
+	n) command -v notify-send > /dev/null && message="notify-send" ;;
+	t) typeOfChars="$OPTARG" ;;
+	a) numberOfChars="$OPTARG" ;;
+	*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
+[ -z "$typeOfChars" ] && typeOfChars="[:graph:]"
+{ [ -z "$numberOfChars" ] || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=16
 [ -z "$message" ] && message="echo"
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && 
 echo "Only one operation can be used at a time" && exit 1
 
 case "$operation" in
-	decrypt) decryption "$@" ;;
-	encrypt) encryption "$@" ;;
-	list) listdb "$@" ;;
-	*) echo "No operation was specified" ; noOperation "$@" ;;
+decrypt) decryption "$@" ;;
+encrypt) encryption "$@" ;;
+list) listdb "$@" ;;
+*) echo "No operation was specified" ; noOperation "$@" ;;
 esac
