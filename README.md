@@ -129,13 +129,13 @@ ppassdb <operation> [options] <filename>
 - `-g`       Auto generates a random string and encrypts it.
 - `-a`	Specify the number of characters to randomly generate.
 - `-t`	Specify the type of characters to randomly generate.
-	`[:graph:]` - All printable characters, except whitespace
-	`[:alnum:]` - All letters and numbers
-	`[:alpha:]` - Letters only
-	`[:lower:]` - Capital letters only
-	`[:upper:]` - Small letters only 
-	`[:digit:]` - Numbers only
-	For more options, refer to the tr manual
+	- `[:graph:]` - All printable characters, except whitespace
+	- `[:alnum:]` - All letters and numbers
+	- `[:alpha:]` - Letters only
+	- `[:lower:]` - Capital letters only
+	- `[:upper:]` - Small letters only 
+	- `[:digit:]` - Numbers only
+	- For more options, refer to the tr manual
 
 #### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
 - `-c`      Clears the clipboard after a period of time.
