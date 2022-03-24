@@ -135,7 +135,7 @@ ppassdb <operation> [options] <filename>
 	- `[:lower:]` - Capital letters only
 	- `[:upper:]` - Small letters only 
 	- `[:digit:]` - Numbers only
-	- For more options, refer to the tr manual
+	- For more options, refer to the `tr` manual
 
 #### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
 - `-c`      Clears the clipboard after a period of time.
