@@ -45,7 +45,7 @@ Specific for -E only:
 -a	Specify the number of characters to randomly generate.
 -t	Specify the type of characters to randomly generate.
 	[:graph:] - All printable characters, except whitespace
-bujka	[:alnum:] - All letters and numbers
+	[:alnum:] - All letters and numbers
 	[:alpha:] - Letters only
 	[:lower:] - Capital letters only
 	[:upper:] - Small letters only 
