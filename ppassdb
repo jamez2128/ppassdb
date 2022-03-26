@@ -7,7 +7,7 @@ deleteJavaScriptTime=30
 dirName="${0##*/}"
 
 ## Number of characters to number randomly generate
-numberOfChars=16
+defaultNumberOfChars=16
 
 ## What type of characters to randomly generate
 ## [:graph:] - All printable characters, except whitespace
@@ -17,7 +17,7 @@ numberOfChars=16
 ## [:upper:] - Small letters only 
 ## [:digit:] - Numbers only
 ## For more options, refer to the tr manual
-typeOfChars="[:graph:]"
+defaultTypeOfChars="[:graph:]"
 
 ##Uncomment to override the script's home directory
 #PPASSDB_HOME="./.${0##*/}" 
@@ -110,7 +110,7 @@ defineHome() {
 		PPASSDB_HOME="$gnuLinuxPath/$dirName"
 	elif [ -z "$XDG_DATA_HOME" ] && [ ! -d "$gnuLinuxPath" ] ; then
 		PPASSDB_HOME="$HOME/.$dirName"
-	else PPASSDB_HOME="$(pwd)/$dirName"
+	else PPASSDB_HOME="$(pwd)/.$dirName"
 	fi
 	mkdir -p "$PPASSDB_HOME"
 }
@@ -214,7 +214,7 @@ copyToClipboard() {
 	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
 }
 
-generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom | fold -w $numberOfChars | head -n 1) ; }
+generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom | fold -w "$numberOfChars" | head -n 1) ; }
 
 encryption() {
 	checkDependecies "$@"
@@ -249,7 +249,7 @@ decryption() {
 
 # Start of the script
 [ $# -eq 0 ] && noOperation "$@" && exit
-echo "$*" | sed "s/ /\\n/g" | grep \\--help > /dev/null 2>&1 && help "$@" && exit  
+echo "$*" | sed "s/ /\\n/g" | grep -q \\--help > /dev/null 2>&1 && help "$@" && exit  
 
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome "$@"
@@ -283,8 +283,10 @@ while getopts ":hEDLcsji:f:gnt:a:" OPTION; do
 	*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
-[ -z "$typeOfChars" ] && typeOfChars="[:graph:]"
-{ [ -z "$numberOfChars" ] || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=16
+
+# Check options
+[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
+{ [ -z "$numberOfChars" ] || echo "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 [ -z "$message" ] && message="echo"
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && 
