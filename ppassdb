@@ -181,8 +181,6 @@ EOF
 	}
 }
 
-cleanUp() { [ -e "$decryptedFile" ] && rm "$decryptedFile" ; }
-
 showText() { echo &&  echo "$textToCopy" && echo ; }
 
 clearClipboard() {
@@ -227,7 +225,7 @@ encryption() {
 		stty echo
 		[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
 	fi
-	printf "%s" "$textToEncrypt" | gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" || exit 1
+	printf "%s" "$textToEncrypt" | gpg --no-symkey-cache -c --cipher-algo AES256 -o "$inputFile" || exit 1
 	textToCopy="$textToEncrypt"
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption
@@ -237,9 +235,7 @@ encryption() {
 decryption() {
 	checkDependecies "$@"
 	checkArgs "$@"
-	decryptedFile=$(mktemp -u)
-	gpg -d --no-symkey-cache -o "$decryptedFile" "$inputFile" || exit 1
-	textToCopy=$(head -n 1 "$decryptedFile")
+	textToCopy=$(gpg -d --no-symkey-cache "$inputFile") || exit 1
 	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption 
 	$showTextOption
