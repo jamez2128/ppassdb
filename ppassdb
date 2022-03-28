@@ -212,7 +212,7 @@ copyToClipboard() {
 	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
 }
 
-generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom | head -c "$numberOfChars") ; }
+generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
 
 encryption() {
 	checkDependecies "$@"
