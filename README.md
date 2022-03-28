@@ -118,7 +118,7 @@ ppassdb <operation> [options] <filename>
 
 ### Operations
 - `-h`, `--help`      To shows this help message
-- `-E`              For adding and encryting text files.
+- `-E`              For adding and encrypting text files.
 - `-D`              For decrypting text file.
 - `-L`              Lists all the added encrypted text files.
 
