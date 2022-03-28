@@ -214,7 +214,7 @@ copyToClipboard() {
 	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
 }
 
-generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom | fold -w "$numberOfChars" | head -n 1) ; }
+generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom | head -c "$numberOfChars") ; }
 
 encryption() {
 	checkDependecies "$@"
@@ -289,8 +289,7 @@ done
 { [ -z "$numberOfChars" ] || echo "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 [ -z "$message" ] && message="echo"
 [ -n "$unknownOption" ] && exit 1
-[ $numOfOperations -gt 1 ] && 
-echo "Only one operation can be used at a time" && exit 1
+[ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 
 case "$operation" in
 decrypt) decryption "$@" ;;
