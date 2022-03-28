@@ -136,7 +136,7 @@ checkArgs() {
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
-	escapeText=$(echo "$textToCopy" | sed 's/[\\\"]/\\&/g')
+	escapeText=$(printf "%s" "$textToCopy" | sed 's/[\\\"]/\\&/g')
 	javaScriptPath=$(mktemp -u).html
 	fileNameOnly=${javaScriptPath##*/}
 	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
@@ -205,7 +205,7 @@ copyToClipboard() {
 		;;
 	esac
 
-	[ -n "$clipboard" ] && { echo "$textToCopy" | tr -d "\n" | $clipboard && $message "Copied to Clipboard sucessfully" ; }
+	[ -n "$clipboard" ] && { printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" ; }
 
 	$clearClipOption
 	
@@ -227,8 +227,7 @@ encryption() {
 		stty echo
 		[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
 	fi
-	echo "$textToEncrypt" | tr -d "\n" |
-	gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" || exit 1
+	printf "%s" "$textToEncrypt" | gpg -c --no-symkey-cache --cipher-algo AES256 -o "$inputFile" || exit 1
 	textToCopy="$textToEncrypt"
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
 	$javaScriptOption
@@ -249,7 +248,7 @@ decryption() {
 
 # Start of the script
 [ $# -eq 0 ] && noOperation "$@" && exit
-echo "$*" | sed "s/ /\\n/g" | grep -q \\--help > /dev/null 2>&1 && help "$@" && exit  
+echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null 2>&1 && help "$@" && exit  
 
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome "$@"
@@ -286,7 +285,7 @@ done
 
 # Check options
 [ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
-{ [ -z "$numberOfChars" ] || echo "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
+{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 [ -z "$message" ] && message="echo"
 [ -n "$unknownOption" ] && exit 1
 [ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
