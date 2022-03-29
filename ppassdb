@@ -14,7 +14,7 @@ defaultNumberOfChars=16
 ## [:alnum:] - All letters and numbers
 ## [:alpha:] - Letters only
 ## [:lower:] - Capital letters only
-## [:upper:] - Small letters only 
+## [:upper:] - Small letters only
 ## [:digit:] - Numbers only
 ## For more options, refer to the tr manual
 defaultTypeOfChars="[:graph:]"
