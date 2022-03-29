@@ -144,7 +144,7 @@ checkArgs() {
 
 checkOptions() {
 	[ -n "$unknownOption" ] && exit 1
-	[ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
+	[ "$numOfOperations" -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 	[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
 	{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 	[ -z "$message" ] && message="echo"
