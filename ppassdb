@@ -23,8 +23,7 @@ defaultTypeOfChars="[:graph:]"
 #PPASSDB_HOME="./.${0##*/}" 
 
 ## Uncomment to ask the password everytime after previous encryption
-askPassEverytime=\
-#"gpg-connect-agent <<< RELOADAGENT"
+#askPassEverytime="gpg-connect-agent <<< RELOADAGENT"
 
 #==========================================================================#
 
@@ -209,6 +208,10 @@ copyToClipboard() {
 
 generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
 
+gpgPasswordOnly() { gpg -c --cipher-algo AES256 "$@" ; }
+
+gpgRecipient() { gpg -e -r "$recipient" "$@" ; }
+
 encryption() {
 	checkDependecies
 	checkArgs
@@ -221,7 +224,8 @@ encryption() {
 		[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
 	fi
 	$askPassEverytime
-	printf "%s" "$textToEncrypt" | gpg "$@" -o "$inputFile" || exit 1
+	[ -n "$recipient" ] && gpgOperation="gpgRecipient" || gpgOperation="gpgPasswordOnly"
+	printf "%s" "$textToEncrypt" | $gpgOperation -o "$inputFile" || exit 1
 	textToCopy="$textToEncrypt"
 	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption
@@ -271,13 +275,12 @@ while getopts ":hEDLcsji:f:gnt:a:r:" OPTION; do
 	n) command -v notify-send > /dev/null && message="notify-send" ;;
 	t) typeOfChars="$OPTARG" ;;
 	a) numberOfChars="$OPTARG" ;;
-	r) gpgOperation="-e -r $OPTARG" ;;
+	r) recipient="$OPTARG" ;;
 	*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
 
 # Check options
-[ -z "$gpgOperation" ] && gpgOperation="-c --cipher-algo AES256"
 [ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
 { [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 [ -z "$message" ] && message="echo"
@@ -286,7 +289,7 @@ done
 
 case "$operation" in
 decrypt) decryption ;;
-encrypt) encryption "$gpgOperation" ;;
+encrypt) encryption ;;
 list) listdb ;;
 *) echo "No operation was specified" ; noOperation ;;
 esac
