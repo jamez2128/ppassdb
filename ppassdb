@@ -142,6 +142,24 @@ checkArgs() {
 	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" && exit 1 ; }
 }
 
+checkOptions() {
+	[ -n "$unknownOption" ] && exit 1
+	[ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
+	[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
+	{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
+	[ -z "$message" ] && message="echo"
+}
+
+checkOS() {
+	{ [ -d "/c/Windows" ] && oS="Windows" ; } || 
+	{
+		case "$(uname)" in
+		*Linux) oS=$(uname -o) ;; 
+		*) oS=$(uname) ;; 
+		esac
+	}
+}
+
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
@@ -255,17 +273,9 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome
 
-# OS Detection
-{ [ -d "/c/Windows" ] && oS="Windows" ; } || 
-{
-	case "$(uname)" in
-	*Linux) oS=$(uname -o) ;; 
-	*) oS=$(uname) ;; 
-	esac
-}
-
 numOfOperations=0
 OPTIND=1
+checkOS
 while getopts ":hEDLOcsji:f:gnt:a:r:d" OPTION; do
 	case $OPTION in
 	h) help ; exit ;;
@@ -287,13 +297,7 @@ while getopts ":hEDLOcsji:f:gnt:a:r:d" OPTION; do
 	*) unknownOption=" " ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
-
-# Check options
-[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
-{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
-[ -z "$message" ] && message="echo"
-[ -n "$unknownOption" ] && exit 1
-[ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
+checkOptions
 
 case "$operation" in
 decrypt) decryption ;;
