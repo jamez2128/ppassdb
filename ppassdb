@@ -118,8 +118,14 @@ defineHome() {
 	mkdir -p "$PPASSDB_HOME"
 }
 
+changeDir() {
+	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 2 ; }
+}
+
+showLocation() { changeDir && pwd && exit ; }
+
 listdb() {
-	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 2 ; } 
+	changeDir
 	echo "${0##*/} Home Directory:"
 	pwd
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && $message "There are no encrypted files added yet" && exit 1 ; } || 
@@ -260,12 +266,13 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit
 
 numOfOperations=0
 OPTIND=1
-while getopts ":hEDLcsji:f:gnt:a:r:" OPTION; do
+while getopts ":hEDLOcsji:f:gnt:a:r:" OPTION; do
 	case $OPTION in
 	h) help ; exit ;;
 	D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
+	O) numOfOperations=$((numOfOperations+1)) ; operation="location" ;;
 	c) clearClipOption='clearClipboard' ;;
 	s) showTextOption='showText' ;;
 	j) javaScriptOption='makeJavaScript' ;;
@@ -291,5 +298,6 @@ case "$operation" in
 decrypt) decryption ;;
 encrypt) encryption ;;
 list) listdb ;;
+location) showLocation ;;
 *) echo "No operation was specified" ; noOperation ;;
 esac

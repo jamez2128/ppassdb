@@ -18,7 +18,7 @@ pgrep -x dmenu && exit 1
 $scriptName -Ln > /dev/null || exit 1
 
 #Gets the path of the encrypted files
-ppassdbHOME="$($scriptName -Ln | sed -n "2p")"
+ppassdbHOME="$($scriptName -O)"
 
 #Stops the loop until it finds a file
 unset prompt
