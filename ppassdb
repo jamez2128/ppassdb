@@ -23,16 +23,17 @@ defaultTypeOfChars="[:graph:]"
 #PPASSDB_HOME="./.${0##*/}" 
 
 ## Uncomment to ask the password everytime after previous encryption
-#askPassEverytime="gpg-connect-agent <<< RELOADAGENT"
+askPassEverytime=\
+#"gpg-connect-agent <<< RELOADAGENT"
 
 #==========================================================================#
 
 usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" ; }
 
-noOperation() { usage "$@" ; echo "Type \"${0##*/} --help\" for more info" ; }
+noOperation() { usage ; echo "Type \"${0##*/} --help\" for more info" ; }
 
 help() {
-	usage "$@"
+	usage
 	echo "
 Operations:
 -h, --help	To shows this help message.
@@ -81,7 +82,7 @@ https://github.com/jamez2128/ppassdb/blob/master/README.md
 	"
 }
 
-checkDependecies() { ! command -v gpg > /dev/null 2>&1 && echo "gnupg is not installed" && exit 127 ; }
+checkDependecies() { ! command -v gpg > /dev/null && echo "gnupg is not installed" && exit 127 ; }
 
 searchHome() {
 	androidPath="/storage/emulated/0"
@@ -100,7 +101,7 @@ searchHome() {
 	elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath/$dirName" ]
 	then PPASSDB_HOME="$gnuLinuxPath/$dirName"
 	elif [ -d "$xdgPath/$dirName" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
-	else defineHome "$@"
+	else defineHome
 	fi
 }
 
@@ -123,7 +124,7 @@ listdb() {
 	echo "${0##*/} Home Directory:"
 	pwd
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && $message "There are no encrypted files added yet" && exit 1 ; } || 
-	{ { command -v "tree" > /dev/null 2>&1 && tree -aR ; } || { printf "ID's: " && ls -AR ; } ; }
+	{ { command -v "tree" > /dev/null && tree -aR ; } || { printf "ID's: " && ls -AR ; } ; }
 }
 
 checkArgs() {
@@ -147,7 +148,7 @@ makeJavaScript() {
 	elif [ "$oS" = "Android" ] ; then
 		unset javaScriptPath
 		echo "You don't have write permissions in Termux" 
-		[ -z "$showTextOption" ] && { cleanUp "$@" ; exit 1 ; }
+		[ -z "$showTextOption" ] && exit 1
 	fi
 	[ -n "$javaScriptPath" ] && 
 	{
@@ -173,12 +174,11 @@ EOF
 	{
 		case "$oS" in
 		"Windows") start "$javaScriptPath" ;;
-		"GNU/Linux") command -v xdg-open > /dev/null 2>&1 && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
-		*) command -v open > /dev/null 2>&1 && open "$javaScriptPath" ;;
+		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$javaScriptPath" > /dev/null ;;
+		*) command -v open > /dev/null && open "$javaScriptPath" ;;
 		esac
 		echo "Your decrypted file is in file://$javaScriptPath"
-		[ "$oS" = "Android" ] && 
-		echo "It will be in the your Internal Storage"
+		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage"
 		echo "This file will be deleted in $deleteJavaScriptTime seconds"
 		sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
 	}
@@ -187,39 +187,31 @@ EOF
 showText() { echo &&  echo "$textToCopy" && echo ; }
 
 clearClipboard() {
-	[ -n "$clipboard" ] && 
-	{
-		$message "Clearing the clipboard in $clearClipboardTime seconds"
-		sleep $clearClipboardTime && head /dev/null | $clipboard &
-	}
+	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds"
+	sleep $clearClipboardTime && head /dev/null | $clipboard &
 }
 
 copyToClipboard() {
 # Clipboards by OS'
 	case $oS in
 	"Windows") clipboard="clip.exe" ;;	
-	"Android") command -v "termux-clipboard-set" > /dev/null 2>&1 && clipboard="termux-clipboard-set" ;;	
+	"Android") command -v "termux-clipboard-set" > /dev/null && clipboard="termux-clipboard-set" ;;	
 	*)
-		{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null 2>&1 && clipboard="wl-copy" ; } ||
-		{ command -v xclip > /dev/null 2>&1 && clipboard="xclip -selection clipboard" ; } ||
-		{ command -v pbcopy > /dev/null 2>&1 && clipboard="pbcopy" ; }
+		{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null && clipboard="wl-copy" ; } ||
+		{ command -v xclip > /dev/null && clipboard="xclip -selection clipboard" ; } ||
+		{ command -v pbcopy > /dev/null && clipboard="pbcopy" ; }
 		;;
 	esac
-
 	[ -n "$clipboard" ] && { printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" ; }
-
-	$clearClipOption
-	
-	[ -z "$clipboard" ] &&
-	$message "Could not find any clipboards" && 
-	[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && { cleanUp "$@" ; exit 127 ; }
+	$clearClipOption	
+	[ -z "$clipboard" ] && $message "Could not find any clipboards" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127
 }
 
 generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
 
 encryption() {
-	checkDependecies "$@"
-	checkArgs "$@"
+	checkDependecies
+	checkArgs
 	if [ -n "$generateRandomTextOption" ]; then $generateRandomTextOption
 	else
 		stty -echo
@@ -229,30 +221,29 @@ encryption() {
 		[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
 	fi
 	$askPassEverytime
-	printf "%s" "$textToEncrypt" | gpg -c --cipher-algo AES256 -o "$inputFile" || exit 1
+	printf "%s" "$textToEncrypt" | gpg "$@" -o "$inputFile" || exit 1
 	textToCopy="$textToEncrypt"
-	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard "$@"
+	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption
 	$showTextOption
 }
 
 decryption() {
-	checkDependecies "$@"
-	checkArgs "$@"
+	checkDependecies
+	checkArgs
 	$askPassEverytime
 	textToCopy=$(gpg -d "$inputFile") || exit 1
-	[ -z "$javaScriptOption" ] && copyToClipboard "$@"
+	[ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption 
 	$showTextOption
-	cleanUp "$@"
 }
 
 # Start of the script
-[ $# -eq 0 ] && noOperation "$@" && exit
-echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null 2>&1 && help "$@" && exit  
+[ $# -eq 0 ] && noOperation && exit
+echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit  
 
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
-[ -z "$PPASSDB_HOME" ] && searchHome "$@"
+[ -z "$PPASSDB_HOME" ] && searchHome
 
 # OS Detection
 { [ -d "/c/Windows" ] && oS="Windows" ; } || 
@@ -265,26 +256,28 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null 2>&1 && help "$@" && exit
 
 numOfOperations=0
 OPTIND=1
-while getopts ":hEDLcsji:f:gnt:a:" OPTION; do
+while getopts ":hEDLcsji:f:gnt:a:r:" OPTION; do
 	case $OPTION in
-	h) help "$@" ; exit ;;
+	h) help ; exit ;;
 	D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
-	c) clearClipOption='clearClipboard "$@"' ;;
-	s) showTextOption='showText "$@"' ;;
-	j) javaScriptOption='makeJavaScript "$@"' ;;
+	c) clearClipOption='clearClipboard' ;;
+	s) showTextOption='showText' ;;
+	j) javaScriptOption='makeJavaScript' ;;
 	i) iD="$OPTARG" ;;
 	f) fileName="$OPTARG" ;;
-	g) generateRandomTextOption='generateRandomText "$@"' ;;
+	g) generateRandomTextOption='generateRandomText' ;;
 	n) command -v notify-send > /dev/null && message="notify-send" ;;
 	t) typeOfChars="$OPTARG" ;;
 	a) numberOfChars="$OPTARG" ;;
+	r) gpgOperation="-e -r $OPTARG" ;;
 	*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
 
 # Check options
+[ -z "$gpgOperation" ] && gpgOperation="-c --cipher-algo AES256"
 [ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
 { [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 [ -z "$message" ] && message="echo"
@@ -292,8 +285,8 @@ done
 [ $numOfOperations -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 
 case "$operation" in
-decrypt) decryption "$@" ;;
-encrypt) encryption "$@" ;;
-list) listdb "$@" ;;
-*) echo "No operation was specified" ; noOperation "$@" ;;
+decrypt) decryption ;;
+encrypt) encryption "$gpgOperation" ;;
+list) listdb ;;
+*) echo "No operation was specified" ; noOperation ;;
 esac
