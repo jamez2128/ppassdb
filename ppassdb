@@ -189,7 +189,7 @@ EOF
 	}
 }
 
-showText() { echo &&  echo "$textToCopy" && echo ; }
+showText() { echo "$textToCopy" ; }
 
 clearClipboard() {
 	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds"
@@ -233,7 +233,7 @@ encryption() {
 	[ -n "$recipient" ] && gpgOperation="gpgRecipient" || gpgOperation="gpgPasswordOnly"
 	printf "%s" "$textToEncrypt" | $gpgOperation -o "$inputFile" || exit 1
 	textToCopy="$textToEncrypt"
-	[ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
+	[ -z "$dontCopyOption" ] && [ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption
 	$showTextOption
 }
@@ -243,7 +243,7 @@ decryption() {
 	checkArgs
 	$askPassEverytime
 	textToCopy=$(gpg -d "$inputFile") || exit 1
-	[ -z "$javaScriptOption" ] && copyToClipboard
+	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption 
 	$showTextOption
 }
@@ -266,13 +266,14 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit
 
 numOfOperations=0
 OPTIND=1
-while getopts ":hEDLOcsji:f:gnt:a:r:" OPTION; do
+while getopts ":hEDLOcsji:f:gnt:a:r:d" OPTION; do
 	case $OPTION in
 	h) help ; exit ;;
 	D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
 	O) numOfOperations=$((numOfOperations+1)) ; operation="location" ;;
+	d) dontCopyOption=" " ;;
 	c) clearClipOption='clearClipboard' ;;
 	s) showTextOption='showText' ;;
 	j) javaScriptOption='makeJavaScript' ;;
@@ -283,7 +284,7 @@ while getopts ":hEDLOcsji:f:gnt:a:r:" OPTION; do
 	t) typeOfChars="$OPTARG" ;;
 	a) numberOfChars="$OPTARG" ;;
 	r) recipient="$OPTARG" ;;
-	*) unknownOption="1" ; echo "-$OPTARG is an unknown option" ;;
+	*) unknownOption=" " ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
 
