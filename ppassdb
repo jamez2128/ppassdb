@@ -198,7 +198,7 @@ EOF
 		case "$oS" in
 		"Windows") start "$javaScriptPath" ;;
 		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
-		*) command -v open > /dev/null && open "$javaScriptPath" 2>&1 ;;
+		*) command -v open > /dev/null && open "$javaScriptPath" > /dev/null 2>&1 ;;
 		esac
 		echo "Your decrypted file is in file://$javaScriptPath"
 		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage"
