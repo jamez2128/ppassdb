@@ -236,16 +236,26 @@ gpgPasswordOnly() { gpg -c --cipher-algo AES256 "$@" ; }
 
 gpgRecipient() { gpg -e -r "$recipient" "$@" ; }
 
+oneLinerText() {
+	stty -echo
+	printf "Enter text to encrypt: " && read -r textToEncrypt ; echo
+	printf "Enter the same text again: " && read -r confirmText ; echo	
+	stty echo
+	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
+}
+
+multiLinerText() {
+	echo "Type or paste the text you want to encrypt
+Press Ctrl+D when done:"
+	textToEncrypt=$(cat)
+}
+
 encryption() {
 	checkDependecies
 	checkArgs
 	if [ -n "$generateRandomTextOption" ]; then $generateRandomTextOption
 	else
-		stty -echo
-		printf "Enter text to encrypt: " && read -r textToEncrypt ; echo
-		printf "Enter the same text again: " && read -r confirmText ; echo	
-		stty echo
-		[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
+		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 	fi
 	$askPassEverytime
 	[ -n "$recipient" ] && gpgOperation="gpgRecipient" || gpgOperation="gpgPasswordOnly"
@@ -276,7 +286,7 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit
 numOfOperations=0
 OPTIND=1
 checkOS
-while getopts ":hEDLOcsji:f:gnt:a:r:d" OPTION; do
+while getopts ":hEDLOcsji:f:gnt:a:r:dm" OPTION; do
 	case $OPTION in
 	h) help ; exit ;;
 	D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
@@ -294,6 +304,7 @@ while getopts ":hEDLOcsji:f:gnt:a:r:d" OPTION; do
 	t) typeOfChars="$OPTARG" ;;
 	a) numberOfChars="$OPTARG" ;;
 	r) recipient="$OPTARG" ;;
+	m) multiLineOption=" " ;;
 	*) unknownOption=" " ; echo "-$OPTARG is an unknown option" ;;
 	esac
 done
