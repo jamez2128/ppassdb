@@ -163,7 +163,7 @@ checkOS() {
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
 makeJavaScript() {
-	escapeText=$(printf "%s" "$textToCopy" | sed 's/[\\\"]/\\&/g')
+	escapeText=$(printf "%s" "$textToCopy" | sed 's/[\\`]/\\&/g')
 	javaScriptPath=$(mktemp -u).html
 	fileNameOnly=${javaScriptPath##*/}
 	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
@@ -181,7 +181,7 @@ makeJavaScript() {
 	<title> $fileName | $iD | ${0#./} </title>
 	<script>
 		function copyToClipboard() { 
-			navigator.clipboard.writeText("$escapeText"); 
+			navigator.clipboard.writeText(\`$escapeText\`); 
 		}
 	</script>
 </head>
@@ -197,8 +197,8 @@ EOF
 	{
 		case "$oS" in
 		"Windows") start "$javaScriptPath" ;;
-		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$javaScriptPath" > /dev/null ;;
-		*) command -v open > /dev/null && open "$javaScriptPath" ;;
+		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
+		*) command -v open > /dev/null && open "$javaScriptPath" 2>&1 ;;
 		esac
 		echo "Your decrypted file is in file://$javaScriptPath"
 		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage"
