@@ -138,6 +138,7 @@ ppassdb <operation> [options] <filename>
 	- For more options, refer to the `tr` manual
 - `-r`	Encrypts it with a existing user ID name made with a key pair.
 	Without this option, it will use symetric encryption instead.
+- `-m`	Encrypts a multi-line text instead of a single line.
 
 #### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
 - `-d`	It will print out to standard output instead of copying it to
