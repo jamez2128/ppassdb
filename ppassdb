@@ -37,8 +37,10 @@ help() {
 Operations:
 -h, --help	To shows this help message.
 -E		For adding and encrypting text files.
--D 		For decrypting text file.
+-D		For decrypting text file.
 -L		Lists all the added encrypted text files.
+-O		Outputs the location to where all the encrypted files
+		will be stored.
 
 Options:
 -n	Pushes feedback messages to notifications (Only works on Linux)
@@ -54,8 +56,13 @@ Specific for -E only:
 	[:upper:] - Small letters only 
 	[:digit:] - Numbers only
 	For more options, refer to the tr manual
+-r	Encrypts it with a existing user ID name made with a key pair.
+	Without this option, it will use symetric encryption instead.
+-m	Encrypts a multi-line text instead of a single line.
 
 Specific to both -D and -E:
+-d	It will print out to standard output instead of copying it to
+	clipboard.
 -c	Clears the clipboard after a period of time.
 -f	This will be the input file name. \"/\" are not allowed in this 
 	option and will be replaced with \"_\" if present.
@@ -66,10 +73,10 @@ Specific to both -D and -E:
 -j	Puts text to the generated html to copy it from the web browser.
 
 Examples:
-Lists all encrypted file
+Lists all encrypted file:
 ${0##*/} -L
 
-Encrypt a text
+Encrypt a text:
 ${0##*/} -E -i \"username\" -f \"website.pass\" 
 
 Decrypts the password and put it into the system clipboard and clears for a 

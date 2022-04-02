@@ -1,14 +1,12 @@
 # `ppassdb`
-- It is posix compliant shell script that manages encrypted single line text files.
+- It is posix compliant shell script that manages encrypted text files.
 - It is a discount, inferior, and a rip-off version of [password-store](https://www.passwordstore.org/).
 - It uses `gpg` to encrypt files.
-- Aims for portability so you can store them in a USB drive
-and it is easy to backup
-- Designed to work on most Operating Systems including Android
-- It encrypts indivdual text files in a single line and encrypts them
-indivdually, meaning every file can have different master passwords and
-it is not required to create a `gpg` keypair
-- Puts the encrypted text to clipboard after decryption
+- Aims for portability in order to easily store them in a USB drive.
+- Designed to work on most Operating Systems including Android and Windows.
+- It encrypts text files and encrypts them indivdually or with a key pair.
+- You can choose whether to use symetric encryption or with a key pair.
+- It mainly puts the encrypted text to clipboard after decryption.
 - If the script doesn't support the clipboard, there is an option to
 use the web browser instead.
 
@@ -117,10 +115,12 @@ ppassdb <operation> [options] <filename>
 ```
 
 ### Operations
-- `-h`, `--help`      To shows this help message
-- `-E`              For adding and encrypting text files.
-- `-D`              For decrypting text file.
-- `-L`              Lists all the added encrypted text files.
+- `-h`, `--help`	To shows this help message
+- `-E`		For adding and encrypting text files.
+- `-D`		For decrypting text file.
+- `-L`		Lists all the added encrypted text files.
+- `-O`		Outputs the location to where all the encrypted
+		files will be stored.
 
 ### Options
 - `-n`      Pushes feedback messages to notifications (Only works on Linux)
@@ -136,8 +136,12 @@ ppassdb <operation> [options] <filename>
 	- `[:upper:]` - Small letters only 
 	- `[:digit:]` - Numbers only
 	- For more options, refer to the `tr` manual
+- `-r`	Encrypts it with a existing user ID name made with a key pair.
+	Without this option, it will use symetric encryption instead.
 
 #### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
+- `-d`	It will print out to standard output instead of copying it to
+	clipboard
 - `-c`      Clears the clipboard after a period of time.
 - `-f`      This will be the input file name. `/` are not allowed in this 
         option and will be replaced with `_` if present.
