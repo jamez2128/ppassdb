@@ -148,6 +148,7 @@ checkOptions() {
 	[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
 	{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 	[ -z "$message" ] && message="echo"
+	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck
 }
 
 checkOS() {
