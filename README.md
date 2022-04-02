@@ -151,6 +151,7 @@ ppassdb <operation> [options] <filename>
 - `-s`      Shows the text. This will return a successful exit status even if 
         the clipboard failed.
 - `-j`      Puts text to the generated html to copy it from the web browser.
+- `-k`	Forgets password after an operation was performed
 
 ### Examples
 #### <a name="example-1"></a> Lists all encrypted file:
