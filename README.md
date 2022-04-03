@@ -189,14 +189,14 @@ If you want to know all the possible locations, it is listed below
 ###  <a name="initialize-directory"></a>Priorities for initializing directories:
 - `/storage/emulated/0/ppassdb`
 - `$APPDATA/ppassdb`
-- `~/Library/Application Support/ppassdb`
+Current directory- `~/Library/Application Support/ppassdb`
 - `$XDG_DATA_HOME/ppassdb`
 - `~/.local/share/ppassdb`
 - `~/.ppassdb`
 - Current directory
 
 ### <a name="change-directory"></a> Changing Directory Locations:
-You also change the location of the script by editing directly in
+If you wish to change the location, you can do so by editing directly in
 the script's variable in the Configuration part, or exporting "PPASSDB_HOME" as 
 an environmental variable. For example:
 - Change to Home Directory:
@@ -214,5 +214,6 @@ or this (Must have XDG_DATA_HOME defined)
 export PPASSDB_HOME="$XDG_DATA_HOME/ppassdb"
 ```
 It is recommended to set the environmental variable so it does need to check
-for directories evertime the script runs. You have to suffix an empty directory
-or the directory that has files made by the script.
+for directories everytime the script runs. You have to suffix an empty directory
+or the directory that has files already made by the script. If you plan to change it,
+make sure to move it to desired directory first before setting an environmental variable.
