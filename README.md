@@ -68,7 +68,7 @@ devs.
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/ppassdb
 ```
 
-Give give execution permissions:
+Give execution permissions:
 ```
 chmod +x ./ppassdb
 ```
