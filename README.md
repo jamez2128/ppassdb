@@ -67,6 +67,12 @@ devs.
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/ppassdb
 ```
+
+Give give execution permissions:
+```
+chmod +x ./ppassdb
+```
+
 For system-wide installation, put the script to `/usr/local/bin` (Need root privileges in Linux):
 ```
 cp ppassdb /usr/local/bin
@@ -75,30 +81,27 @@ cp ppassdb /usr/local/bin
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/dpassmenu
 ```
-For installation, same thing above:
-```
-cp dpassmenu /usr/local/bin
-```
 
-If the script doesn't run, make sure that you that the file has
-permissions to run. To give it execution permissions:
-```
-chmod +x ./ppassdb
-```
-same thing for `dpassmenu`:
+Give execution permissions:
 ```
 chmod +x ./dpassmenu
+```
+
+For installation, same thing above:
+
+```
+cp dpassmenu /usr/local/bin
 ```
 
 ## Uninstallation
 If you want to know where the script saves the files and you want to delete it, run this command:
 ```
-ppassdb -L | sed -n 2p
+ppassdb -O
 ```
 If you think that it is safe to delete, run this command:
 ### <a name="remove-encrypted-files"></a> Remove encrypted all files:
 ```
-rm -r "$(ppassdb -L | sed -n 2p)"
+rm -r "$(ppassdb -O)"
 ```
 ### <a name="uninstall-ppassdb"></a>Uninstall `ppassdb`:
 ```
@@ -172,7 +175,7 @@ ppassdb -Dc -i "username" -f "website.pass"
 ##  <a name="directory-location"></a>Directory Location
 If you want to know where the script saves the files, run this command:
 ```
-ppassdb -L | sed -n 2p
+ppassdb -O
 ```
 If you want to know all the possible locations, it is listed below
 
