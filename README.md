@@ -144,8 +144,7 @@ ppassdb <operation> [options] <filename>
 - `-m`	Encrypts a multi-line text instead of a single line.
 
 #### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
-- `-d`	It will print out to standard output instead of copying it to
-	clipboard
+- `-d`	This option will not attempt to copy to clipboard.
 - `-c`      Clears the clipboard after a period of time.
 - `-f`      This will be the input file name. `/` are not allowed in this 
         option and will be replaced with `_` if present.
