@@ -99,7 +99,7 @@ If you want to know where the script saves the files and you want to delete it, 
 ppassdb -O
 ```
 If you think that it is safe to delete, run this command:
-### <a name="remove-encrypted-files"></a> Remove encrypted all files:
+### <a name="remove-encrypted-files"></a> Remove all encrypted files:
 ```
 rm -r "$(ppassdb -O)"
 ```
