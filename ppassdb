@@ -268,7 +268,7 @@ encryption() {
 	$askPassEverytime
 	[ -n "$recipient" ] && gpgOperation="gpgRecipient" || gpgOperation="gpgPasswordOnly"
 	printf "%s" "$textToEncrypt" | $gpgOperation -o "$inputFile" || exit 1
-	[ -n "$forgetImmediatelyOption" ] && gpg-connect-agent <<< RELOADAGENT
+	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy="$textToEncrypt"
 	[ -z "$dontCopyOption" ] && [ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption
@@ -280,7 +280,7 @@ decryption() {
 	checkArgs
 	$askPassEverytime
 	textToCopy=$(gpg -d "$inputFile") || exit 1
-	[ -n "$forgetImmediatelyOption" ] && gpg-connect-agent <<< RELOADAGENT
+	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption 
 	$showTextOption
