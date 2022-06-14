@@ -137,6 +137,7 @@ changeDir() {
 showPath() { changeDir && pwd && exit ; }
 
 listdb() {
+	checkArgs
 	changeDir
 	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" ; exit 1 ; }
 	echo "${0##*/} Home Directory:"
@@ -147,6 +148,7 @@ listdb() {
 
 checkArgs() {
 	[ -n "$iD" ] && iD="${iD#/}"
+	[ "$operation" = "list" ] && return
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" && exit 1
 	fileName=$(echo "$fileName" | tr "\/" "_" )
@@ -308,7 +310,7 @@ while getopts ":hEDLPcsji:f:gnt:a:r:dmk" OPTION; do
 	D) numOfOperations=$((numOfOperations+1)) operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) operation=list ;;
-	P) numOfOperations=$((numOfOperations+1)) operation=location ;;
+	P) numOfOperations=$((numOfOperations+1)) operation=path ;;
 	d) dontCopyOption=" " ;;
 	c) clearClipOption='clearClipboard' ;;
 	s) showTextOption='showText' ;;
@@ -331,6 +333,6 @@ case "$operation" in
 decrypt) decryption ;;
 encrypt) encryption ;;
 list) listdb ;;
-location) showPath ;;
+path) showPath ;;
 *) echo "No operation was specified" ; noOperation ;;
 esac
