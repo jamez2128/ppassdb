@@ -239,7 +239,7 @@ copyToClipboard() {
 	"Android") command -v "termux-clipboard-set" > /dev/null && clipboard="termux-clipboard-set" ;;	
 	*)
 		{ [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy > /dev/null && clipboard="wl-copy" ; } ||
-		{ command -v xclip > /dev/null && clipboard="xclip -selection clipboard" ; } ||
+		{ [ -n "$DISPLAY" ] && command -v xclip > /dev/null && clipboard="xclip -selection clipboard" ; } ||
 		{ command -v pbcopy > /dev/null && clipboard="pbcopy" ; }
 		;;
 	esac
