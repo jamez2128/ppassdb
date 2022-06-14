@@ -146,10 +146,10 @@ listdb() {
 }
 
 checkArgs() {
-	[ -n "$iD" ] && iD=$(echo "$iD" | sed "s/^\/*//g")
+	[ -n "$iD" ] && iD="${iD#/}"
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" && exit 1
-	fileName=$(echo "$fileName" | sed "s/\//_/g" )
+	fileName=$(echo "$fileName" | tr "\/" "_" )
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
 	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
 	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" && exit 1 ; }
