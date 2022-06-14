@@ -158,12 +158,14 @@ checkArgs() {
 }
 
 checkOptions() {
+	[ -z "$gpgEncryptOptions" ] && gpgEncryptOptions="-c --cipher-algo AES256"
 	[ -n "$unknownOption" ] && exit 1
 	[ "$numOfOperations" -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
 	[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
 	{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 	[ -z "$message" ] && message="echo"
-	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck
+	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck but I still need this specific error so yeah
+
 }
 
 checkOS() {
@@ -248,10 +250,6 @@ copyToClipboard() {
 
 generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
 
-gpgPasswordOnly() { $gnupg -c --cipher-algo AES256 "$@" ; }
-
-gpgRecipient() { $gnupg -e -r "$recipient" "$@" ; }
-
 oneLinerText() {
 	stty -echo
 	printf "Enter text to encrypt: " && read -r textToEncrypt ; echo
@@ -274,8 +272,8 @@ encryption() {
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 	fi
 	$askPassEverytime
-	[ -n "$recipient" ] && gpgOperation="gpgRecipient" || gpgOperation="gpgPasswordOnly"
-	printf "%s" "$textToEncrypt" | $gpgOperation -o "$inputFile" || exit 1
+	# shellcheck disable=SC2086
+	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit 1
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy="$textToEncrypt"
 	[ -z "$dontCopyOption" ] && [ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
@@ -300,6 +298,7 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit
 
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome
+gpgEncryptOptions="-c --cipher-algo AES256"
 
 numOfOperations=0
 OPTIND=1
@@ -321,7 +320,7 @@ while getopts ":hEDLPcsji:f:gnt:a:r:dmk" OPTION; do
 	n) command -v notify-send > /dev/null && message="notify-send" ;;
 	t) typeOfChars="$OPTARG" ;;
 	a) numberOfChars="$OPTARG" ;;
-	r) recipient="$OPTARG" ;;
+	r) gpgEncryptOptions="-e -r $OPTARG" ;;
 	m) multiLineOption=" " ;;
 	k) forgetImmediatelyOption=" " ;;
 	*) unknownOption=" " ; echo "-$OPTARG is an unknown option" ;;
@@ -331,7 +330,7 @@ checkOptions
 
 case "$operation" in
 decrypt) decryption ;;
-encrypt) encryption ;;
+encrypt) encryption "$gpgEncryptOptions" ;;
 list) listdb ;;
 path) showPath ;;
 *) echo "No operation was specified" ; noOperation ;;
