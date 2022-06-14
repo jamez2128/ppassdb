@@ -89,7 +89,11 @@ For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md"
 }
 
-checkDependecies() { ! command -v gpg > /dev/null && echo "gnupg is not installed" && exit 127 ; }
+checkDependecies() {
+	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
+	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
+	{ echo "gnupg is not installed" && exit 127 ; }
+}
 
 searchHome() {
 	androidPath="/storage/emulated/0"
@@ -242,9 +246,9 @@ copyToClipboard() {
 
 generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
 
-gpgPasswordOnly() { gpg -c --cipher-algo AES256 "$@" ; }
+gpgPasswordOnly() { $gnupg -c --cipher-algo AES256 "$@" ; }
 
-gpgRecipient() { gpg -e -r "$recipient" "$@" ; }
+gpgRecipient() { $gnupg -e -r "$recipient" "$@" ; }
 
 oneLinerText() {
 	stty -echo
@@ -281,7 +285,7 @@ decryption() {
 	checkDependecies
 	checkArgs
 	$askPassEverytime
-	textToCopy=$(gpg -d "$inputFile") || exit 1
+	textToCopy=$($gnupg -d "$inputFile") || exit 1
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption 
