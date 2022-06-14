@@ -38,7 +38,9 @@ Operations:
 -h, --help	To shows this help message.
 -E		For adding and encrypting text files.
 -D		For decrypting text file.
--L		Lists all the added encrypted text files.
+-L		Lists all the added encrypted text files. If -i
+		is not specified, it will list all encrypted files
+		from all groups.
 -P		Outputs the path to where all the encrypted files
 		will be stored.
 
@@ -84,8 +86,7 @@ period of time:
 ${0##*/} -Dc -i \"username\" -f \"website.pass\"
 
 For full documentation, refer to the README.md file at
-https://github.com/jamez2128/ppassdb/blob/master/README.md
-	"
+https://github.com/jamez2128/ppassdb/blob/master/README.md"
 }
 
 checkDependecies() { ! command -v gpg > /dev/null && echo "gnupg is not installed" && exit 127 ; }
@@ -126,13 +127,14 @@ defineHome() {
 }
 
 changeDir() {
-	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 2 ; }
+	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" ;  exit 2 ; }
 }
 
 showPath() { changeDir && pwd && exit ; }
 
 listdb() {
 	changeDir
+	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" ; exit 1 ; }
 	echo "${0##*/} Home Directory:"
 	pwd
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && $message "There are no encrypted files added yet" && exit 1 ; } || 
@@ -299,10 +301,10 @@ checkOS
 while getopts ":hEDLPcsji:f:gnt:a:r:dmk" OPTION; do
 	case $OPTION in
 	h) help ; exit ;;
-	D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
-	E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
-	L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
-	P) numOfOperations=$((numOfOperations+1)) ; operation="location" ;;
+	D) numOfOperations=$((numOfOperations+1)) operation=decrypt ;;
+	E) numOfOperations=$((numOfOperations+1)) operation=encrypt ;;
+	L) numOfOperations=$((numOfOperations+1)) operation=list ;;
+	P) numOfOperations=$((numOfOperations+1)) operation=location ;;
 	d) dontCopyOption=" " ;;
 	c) clearClipOption='clearClipboard' ;;
 	s) showTextOption='showText' ;;

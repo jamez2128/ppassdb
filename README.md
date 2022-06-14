@@ -121,7 +121,9 @@ ppassdb <operation> [options] <filename>
 - `-h`, `--help`	To shows this help message
 - `-E`		For adding and encrypting text files.
 - `-D`		For decrypting text file.
-- `-L`		Lists all the added encrypted text files.
+- `-L`		Lists all the added encrypted text files. If -i
+		is not specified, it will list all encrypted files
+		from all groups.
 - `-P`		Outputs the path to where all the encrypted
 		files will be stored.
 
