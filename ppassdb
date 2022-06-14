@@ -93,6 +93,7 @@ checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" && exit 127 ; }
+	[ -n "$convertToOtpCode" ] && ! command -v oathtool > /dev/null && { echo "oathtool is not installed. It is required to generate OTP codes." ; exit 1 ; }
 }
 
 searchHome() {
@@ -281,11 +282,44 @@ encryption() {
 	$showTextOption
 }
 
+otpCode() {
+
+	case $1 in
+	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
+	*) echo "Not a valid OTP auth URI" ; exit 1 ;;
+	esac
+
+	[ "$otpType"  = "hotp" ] && echo "Only TOTP URL's are supported at this time." && exit 1
+	
+	case $1 in
+	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
+	*) echo "Invalid URI. No secret is provided" ; exit 1 ;;
+	esac
+	
+	case $1 in 
+	*algorithm=*) otpAlgorithm=${1#*algorithm=} otpAlgorithm=${otpAlgorithm%%&*} ;;
+	*) otpAlgorithm="SHA1" ;;
+	esac
+	
+	case $1 in 
+	*digits=*) otpDigits=${1#*digits=} otpDigits=${otpDigits%%&*} ;;
+	*) otpDigits=6 ;;
+	esac
+	
+	case $1 in
+	*period=*) otpPeriod=${1#*period=} otpPeriod=${otpPeriod%%&*} ;;
+	*) otpPeriod=30  ;;
+	esac
+
+	oathtool -b --$otpType=$otpAlgorithm --digits=$otpDigits --time-step-size=$otpPeriod "$otpSecret"
+}
+
 decryption() {
 	checkDependecies
 	checkArgs
 	$askPassEverytime
 	textToCopy=$($gnupg -d "$inputFile") || exit 1
+	[ -n "$convertToOtpCode" ] && textToCopy=$(otpCode "$textToCopy")
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption 
@@ -303,12 +337,13 @@ gpgEncryptOptions="-c --cipher-algo AES256"
 numOfOperations=0
 OPTIND=1
 checkOS
-while getopts ":hEDLPcsji:f:gnt:a:r:dmk" OPTION; do
+while getopts ":hEDLPcsji:f:gnt:a:r:dmko" OPTION; do
 	case $OPTION in
 	h) help ; exit ;;
 	D) numOfOperations=$((numOfOperations+1)) operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) operation=list ;;
+	o) convertToOtpCode=" " ;;
 	P) numOfOperations=$((numOfOperations+1)) operation=path ;;
 	d) dontCopyOption=" " ;;
 	c) clearClipOption='clearClipboard' ;;
