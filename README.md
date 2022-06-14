@@ -96,12 +96,12 @@ cp dpassmenu /usr/local/bin
 ## Uninstallation
 If you want to know where the script saves the files and you want to delete it, run this command:
 ```
-ppassdb -O
+ppassdb -P
 ```
 If you think that it is safe to delete, run this command:
 ### <a name="remove-encrypted-files"></a> Remove all encrypted files:
 ```
-rm -r "$(ppassdb -O)"
+rm -r "$(ppassdb -P)"
 ```
 ### <a name="uninstall-ppassdb"></a>Uninstall `ppassdb`:
 ```
@@ -122,7 +122,7 @@ ppassdb <operation> [options] <filename>
 - `-E`		For adding and encrypting text files.
 - `-D`		For decrypting text file.
 - `-L`		Lists all the added encrypted text files.
-- `-O`		Outputs the location to where all the encrypted
+- `-P`		Outputs the path to where all the encrypted
 		files will be stored.
 
 ### Options
@@ -174,7 +174,7 @@ ppassdb -Dc -i "username" -f "website.pass"
 ##  <a name="directory-location"></a>Directory Location
 If you want to know where the script saves the files, run this command:
 ```
-ppassdb -O
+ppassdb -P
 ```
 If you want to know all the possible locations, it is listed below
 

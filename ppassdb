@@ -39,7 +39,7 @@ Operations:
 -E		For adding and encrypting text files.
 -D		For decrypting text file.
 -L		Lists all the added encrypted text files.
--O		Outputs the location to where all the encrypted files
+-P		Outputs the path to where all the encrypted files
 		will be stored.
 
 Options:
@@ -129,7 +129,7 @@ changeDir() {
 	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" && exit 2 ; }
 }
 
-showLocation() { changeDir && pwd && exit ; }
+showPath() { changeDir && pwd && exit ; }
 
 listdb() {
 	changeDir
@@ -296,13 +296,13 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit
 numOfOperations=0
 OPTIND=1
 checkOS
-while getopts ":hEDLOcsji:f:gnt:a:r:dmk" OPTION; do
+while getopts ":hEDLPcsji:f:gnt:a:r:dmk" OPTION; do
 	case $OPTION in
 	h) help ; exit ;;
 	D) numOfOperations=$((numOfOperations+1)) ; operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) ; operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) ; operation=list ;;
-	O) numOfOperations=$((numOfOperations+1)) ; operation="location" ;;
+	P) numOfOperations=$((numOfOperations+1)) ; operation="location" ;;
 	d) dontCopyOption=" " ;;
 	c) clearClipOption='clearClipboard' ;;
 	s) showTextOption='showText' ;;
@@ -325,6 +325,6 @@ case "$operation" in
 decrypt) decryption ;;
 encrypt) encryption ;;
 list) listdb ;;
-location) showLocation ;;
+location) showPath ;;
 *) echo "No operation was specified" ; noOperation ;;
 esac
