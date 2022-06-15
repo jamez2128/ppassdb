@@ -31,7 +31,7 @@ usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" ; }
 
 noOperation() { usage ; echo "Type \"${0##*/} --help\" for more info" ; }
 
-help() {
+helpPage() {
 	usage
 	echo "
 Operations:
@@ -376,7 +376,7 @@ OPTIND=1
 checkOS
 while getopts ":hEDLPcsji:f:gnt:a:r:dmko" OPTION; do
 	case $OPTION in
-	h) help ; exit ;;
+	h) helpPage ; exit ;;
 	D) numOfOperations=$((numOfOperations+1)) operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) operation=list ;;
