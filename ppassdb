@@ -291,7 +291,7 @@ otpCode() {
 
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
-	*) [ "$otpType" = "hotp" ] && echo "Not a valid HOTP URL. No counter provided." ; exit 1 ;;
+	*) [ "$otpType" = "hotp" ] && { echo "Not a valid HOTP URL. No counter provided." ; exit 1 ; } ;;
 	esac
 
 	[ "$otpType"  = "hotp" ] && echo "Only TOTP URL's are supported at this time." && exit 1
