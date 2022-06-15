@@ -244,9 +244,9 @@ copyToClipboard() {
 		{ command -v pbcopy > /dev/null && clipboard="pbcopy" ; }
 		;;
 	esac
-	[ -n "$clipboard" ] && { printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" ; }
+	[ -n "$clipboard" ] && { printf "%s" "$textToCopy" | $clipboard ; $message "Copied to Clipboard sucessfully" ; } ||
+	{  $message "Could not find any clipboards" ; [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127 ; }
 	$clearClipOption	
-	[ -z "$clipboard" ] && $message "Could not find any clipboards" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127
 }
 
 generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
