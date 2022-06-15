@@ -93,7 +93,10 @@ checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" && exit 127 ; }
-	[ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null && { echo "oathtool is not installed. It is required to generate OTP codes." ; exit 1 ; }
+	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
+		echo "oathtool is not installed. It is required to generate OTP codes."
+		exit 1
+	fi
 }
 
 searchHome() {
@@ -110,8 +113,8 @@ searchHome() {
 		PPASSDB_HOME="$windowsPath/$dirName"
 	elif [ -d "$macPath/$dirName" ] ; then PPASSDB_HOME="$macPath/$dirName"
 	elif [ -d "$HOME/.$dirName" ] ; then PPASSDB_HOME="$HOME/.$dirName"
-	elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath/$dirName" ]
-	then PPASSDB_HOME="$gnuLinuxPath/$dirName"
+	elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath/$dirName" ] ; then
+		PPASSDB_HOME="$gnuLinuxPath/$dirName"
 	elif [ -d "$xdgPath/$dirName" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
 	else defineHome
 	fi
@@ -139,10 +142,14 @@ listdb() {
 	checkArgs
 	changeDir
 	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" ; exit 1 ; }
-	echo "${0##*/} Home Directory:"
-	pwd
-	{ [ "$(find ./ | wc -l)" -eq 1 ] && $message "There are no encrypted files added yet" && exit 1 ; } || 
-	{ { command -v "tree" > /dev/null && tree -aR ; } || ls -AR ; }
+	printf "%s Home Directory %s:" "${0##*/}" "$(pwd)"
+	if [ "$(find ./ | wc -l)" -eq 1 ] ; then
+		$message "There are no encrypted files added yet"
+		exit 1
+	else
+		{ command -v "tree" > /dev/null && tree -aR ; } || ls -AR
+	fi
+	
 }
 
 checkArgs() {
@@ -163,18 +170,17 @@ checkOptions() {
 	[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
 	{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 	[ -z "$message" ] && message="echo"
-	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck but I still need this specific error so yeah
-
+	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck
 }
 
 checkOS() {
-	{ [ -d "/c/Windows" ] && oS="Windows" ; } || 
-	{
+	if [ -d "/c/Windows" ] ; then oS="Windows"
+	else
 		case "$(uname)" in
 		*Linux) oS=$(uname -o) ;; 
 		*) oS=$(uname) ;; 
 		esac
-	}
+	fi
 }
 
 #A workaround if the script failed to take care of the clipboard
@@ -210,8 +216,7 @@ makeJavaScript() {
 </html>
 EOF
 	} > "$javaScriptPath"
-	[ -n "$javaScriptPath" ] &&
-	{
+	if [ -n "$javaScriptPath" ] ; then
 		case "$oS" in
 		"Windows") start "$javaScriptPath" ;;
 		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
@@ -221,7 +226,7 @@ EOF
 		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage"
 		echo "This file will be deleted in $deleteJavaScriptTime seconds"
 		sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
-	}
+	fi
 }
 
 showText() { echo "$textToCopy" ; }
@@ -244,11 +249,11 @@ copyToClipboard() {
 	esac
 	if [ -n "$clipboard" ] ; then
 		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully"
+		$clearClipOption	
 	else
 		$message "Could not find any clipboards"
 		[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127
 	fi
-	$clearClipOption	
 }
 
 generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
@@ -272,7 +277,11 @@ encryption() {
 	if [ -n "$generateRandomTextOption" ]; then $generateRandomTextOption
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
-		[ -n "$otpOption" ] && { otp "$textToEncrypt" && echo "$fileName: OTP URL Validated" || echo "$fileName: OTP URL provided may be invalid"  ; }
+		if [ -n "$otpOption" ] ; then
+			otp "$textToEncrypt" && echo "$fileName: OTP URL Validated"
+		else
+			echo "$fileName: OTP URL provided may be invalid"
+		fi
 	fi
 	$askPassEverytime
 	# shellcheck disable=SC2086
