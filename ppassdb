@@ -249,7 +249,7 @@ copyToClipboard() {
 	[ -z "$clipboard" ] && $message "Could not find any clipboards" && [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127
 }
 
-generateRandomText() { LC_CTYPE=C ; textToEncrypt=$(tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
+generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
 
 oneLinerText() {
 	stty -echo
@@ -260,8 +260,7 @@ oneLinerText() {
 }
 
 multiLinerText() {
-	echo "Type or paste the text you want to encrypt
-Press Ctrl+D when done:"
+	echo "Type or paste the text you want to encrypt Press Ctrl+D when done:"
 	textToEncrypt=$(cat)
 }
 
