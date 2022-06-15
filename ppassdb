@@ -131,9 +131,7 @@ defineHome() {
 	mkdir -p "$PPASSDB_HOME"
 }
 
-changeDir() {
-	cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" ;  exit 2 ; }
-}
+changeDir() { cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" ;  exit 2 ; } ; }
 
 showPath() { changeDir && pwd && exit ; }
 
@@ -244,8 +242,12 @@ copyToClipboard() {
 		{ command -v pbcopy > /dev/null && clipboard="pbcopy" ; }
 		;;
 	esac
-	[ -n "$clipboard" ] && { printf "%s" "$textToCopy" | $clipboard ; $message "Copied to Clipboard sucessfully" ; } ||
-	{  $message "Could not find any clipboards" ; [ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127 ; }
+	if [ -n "$clipboard" ] ; then
+		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully"
+	else
+		$message "Could not find any clipboards"
+		[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127
+	fi
 	$clearClipOption	
 }
 
