@@ -286,14 +286,19 @@ otpCode() {
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) echo "Not a valid OTP auth URI" ; exit 1 ;;
+	*) echo "Not a valid OTP auth URL" ; exit 1 ;;
+	esac
+
+	case $1 in
+	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
+	*) [ "$otpType" = "hotp" ] && echo "Not a valid HOTP URL. No counter provided." ; exit 1 ;;
 	esac
 
 	[ "$otpType"  = "hotp" ] && echo "Only TOTP URL's are supported at this time." && exit 1
 	
 	case $1 in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
-	*) echo "Invalid URI. No secret is provided" ; exit 1 ;;
+	*) echo "Invalid URL. No secret is provided" ; exit 1 ;;
 	esac
 	
 	case $1 in 
