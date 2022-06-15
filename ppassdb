@@ -348,7 +348,7 @@ otp() {
 	[ "$operation" = "encrypt" ] && return $otpValidate
 
 	# shellcheck disable=SC2086
-	[ "$operation" = "decrypt"  ] && oathtool -b $oathtoolArgs --digits=$otpDigits "$otpSecret"
+	oathtool -b $oathtoolArgs --digits=$otpDigits "$otpSecret"
 }
 
 decryption() {
