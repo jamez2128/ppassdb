@@ -144,7 +144,7 @@ listdb() {
 	echo "${0##*/} Home Directory:"
 	pwd
 	{ [ "$(find ./ | wc -l)" -eq 1 ] && $message "There are no encrypted files added yet" && exit 1 ; } || 
-	{ { command -v "tree" > /dev/null && tree -aR ; } || { printf "ID's: " && ls -AR ; } ; }
+	{ { command -v "tree" > /dev/null && tree -aR ; } || ls -AR ; }
 }
 
 checkArgs() {
