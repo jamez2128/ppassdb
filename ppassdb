@@ -23,7 +23,7 @@ defaultTypeOfChars="[:graph:]"
 #PPASSDB_HOME="./.${0##*/}" 
 
 ## Uncomment to ask the password everytime after previous encryption
-#askPassEverytime="gpg-connect-agent <<< RELOADAGENT"
+#askPassEverytime="printf RELOADAGENT | gpg-connect-agent"
 
 #==========================================================================#
 
