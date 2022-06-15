@@ -93,7 +93,7 @@ checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" && exit 127 ; }
-	[ -n "$convertToOtpCode" ] && ! command -v oathtool > /dev/null && { echo "oathtool is not installed. It is required to generate OTP codes." ; exit 1 ; }
+	[ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null && { echo "oathtool is not installed. It is required to generate OTP codes." ; exit 1 ; }
 }
 
 searchHome() {
@@ -271,6 +271,7 @@ encryption() {
 	if [ -n "$generateRandomTextOption" ]; then $generateRandomTextOption
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
+		[ -n "$otpOption" ] && { otp "$textToEncrypt" && echo "$fileName: OTP URL Validated" || echo "$fileName: OTP URL provided may be invalid"  ; }
 	fi
 	$askPassEverytime
 	# shellcheck disable=SC2086
@@ -282,23 +283,37 @@ encryption() {
 	$showTextOption
 }
 
-otpCode() {
+otp() {
+	otpValidate=0
+	case $operation in
+	encrypt) failAction="return 1" ;;
+	decrypt) failAction="exit 1" ;;
+	esac
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) echo "Not a valid OTP auth URL" ; exit 1 ;;
+	*) echo "$fileName: Not a valid OTP auth URL" ; $failAction ;;
 	esac
 
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
-	*) [ "$otpType" = "hotp" ] && { echo "Not a valid HOTP URL. No counter provided." ; exit 1 ; } ;;
+	*) 
+		[ "$otpType" = "hotp" ] && 
+		{
+			echo "$fileName: Not a valid HOTP URL. No counter provided."
+	      		{ [ "$operation" = "decrypt" ] && exit 1 ; }
+			otpValidate=1
+       		} 
+	;;
 	esac
 
-	[ "$otpType"  = "hotp" ] && echo "Only TOTP URL's are supported at this time." && exit 1
-	
 	case $1 in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
-	*) echo "Invalid URL. No secret is provided" ; exit 1 ;;
+	*)
+		echo "$fileName Invalid URL. No secret is provided"
+	       	{ [ "$operation" = "decrypt" ] && exit 1 ; }
+		otpValidate=1
+	;;
 	esac
 	
 	case $1 in 
@@ -316,7 +331,14 @@ otpCode() {
 	*) otpPeriod=30  ;;
 	esac
 
-	oathtool -b --$otpType=$otpAlgorithm --digits=$otpDigits --time-step-size=$otpPeriod "$otpSecret"
+	case $otpType in
+	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
+	hotp) echo "Only TOTP URL's are supported at this time." ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
+	esac
+	[ "$operation" = "encrypt" ] && return $otpValidate
+
+	# shellcheck disable=SC2086
+	[ "$operation" = "decrypt"  ] && oathtool -b $oathtoolArgs --digits=$otpDigits "$otpSecret"
 }
 
 decryption() {
@@ -324,7 +346,7 @@ decryption() {
 	checkArgs
 	$askPassEverytime
 	textToCopy=$($gnupg -d "$inputFile") || exit 1
-	[ -n "$convertToOtpCode" ] && textToCopy=$(otpCode "$textToCopy")
+	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
 	$javaScriptOption 
@@ -348,7 +370,7 @@ while getopts ":hEDLPcsji:f:gnt:a:r:dmko" OPTION; do
 	D) numOfOperations=$((numOfOperations+1)) operation=decrypt ;;
 	E) numOfOperations=$((numOfOperations+1)) operation=encrypt ;;
 	L) numOfOperations=$((numOfOperations+1)) operation=list ;;
-	o) convertToOtpCode=" " ;;
+	o) otpOption=" " ;;
 	P) numOfOperations=$((numOfOperations+1)) operation=path ;;
 	d) dontCopyOption=" " ;;
 	c) clearClipOption='clearClipboard' ;;
