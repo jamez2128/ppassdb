@@ -302,7 +302,7 @@ otp() {
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) echo "$fileName: Not a valid OTP auth URL" ; $failAction ;;
+	*) $message "$fileName: Not a valid OTP auth URL" ; $failAction ;;
 	esac
 
 	case $1 in
@@ -343,7 +343,7 @@ otp() {
 
 	case $otpType in
 	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
-	hotp) echo "Only TOTP URL's are supported at this time." ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
+	hotp) $message "Only TOTP URL's are supported at this time." ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
 	esac
 	[ "$operation" = "encrypt" ] && return $otpValidate
 
