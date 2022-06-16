@@ -30,11 +30,13 @@ echo "A simple dmenu script for ppassdb
 Usage: ${0##*/} [options]
 
 Options:
---help	To show this help message
---otp	Generate an OTP code instead of the
-	encrypted text. All files without the
-	.otp at the end are hidden.
---sort	Sort all files and folders together
+--help		To show this help message
+--otp		Generate an OTP code instead of the
+		encrypted text. All files without the
+		.otp at the end are hidden unless
+		if --show-all is specified.
+--show-all	Show all files even if otp is specified.
+--sort		Sort all files and folders together
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md"
@@ -45,6 +47,7 @@ while [ "$1" ] ; do
 	case $1 in
 	--otp) convertToOtpCode="-o" ; shift ;;
 	--sort) sortOption=" " ; shift ;;
+	--show-all) showAllOption=" " ; shift ;;
 	--help) helpPage ; exit ;;
 	esac
 done
@@ -56,7 +59,7 @@ prompt="$ppassdbHOME"
 while [ -d "$prompt" ] ; do
 	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
 	prompt=$(pwd)
-	[ -n "$convertToOtpCode" ] && findName="*.otp" || findName="*"
+	{ [ -n "$convertToOtpCode" ] && [ -z "$showAllOption" ] ; } && findName="*.otp" || findName="*"
 	unset removeDefault
 	unset topOption
 	if [ "$(pwd)" = "$ppassdbHOME" ]  ; then
