@@ -23,6 +23,32 @@ pgrep -x dmenu && exit 1
 #Gets the path of the encrypted files
 ppassdbHOME="$("$scriptName" -P)"
 
+#Help Page
+helpPage() {
+echo "A simple dmenu script for ppassdb
+
+Usage: ${0##*/} [options]
+
+Options:
+--help	To show this help message
+--otp	Generate an OTP code instead of the
+	encrypted text
+--sort	Sort all files and folders together
+
+For full documentation, refer to the README.md file at
+https://github.com/jamez2128/ppassdb/blob/master/README.md"
+
+}
+
+#Parses all the arguments
+while [ "$1" ] ; do
+	case $1 in
+	--otp) convertToOtpCode="-o" ; shift ;;
+	--sort) sortOption=" " ; shift ;;
+	--help) helpPage ; exit ;;
+	esac
+done
+
 #Stops the loop until it finds a file
 unset prompt
 #If the directory is empty, it will exit the script
@@ -30,28 +56,35 @@ prompt="$ppassdbHOME"
 while [ -d "$prompt" ] ; do
 	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
 	prompt=$(pwd)
-	[ "$1" = "otp" ] && findName="*.otp" || findName="*"
-	lsFormat=$(cat << EOF
+	[ -n "$convertToOtpCode" ] && findName="*.otp" || findName="*"
+	unset removeDefault
+	unset topOption
+	if [ "$(pwd)" = "$ppassdbHOME" ]  ; then
+		[ -d "default" ] && removeDefault="/default/ d"
+		topOption="default/"
+	else topOption=".."
+	fi
+	findFormat=$(cat << EOF
 $(
-if [ "$(pwd)" = "$ppassdbHOME" ] ; then
-echo "default/"
-find . -maxdepth 1 -type d | sed "1d; s/.*\///g; /default/ d; s/.*$/&\//g;"
-find . -maxdepth 1 -name "$findName" -type f | sed "s/.*\///g"
-else
-echo ".."
-find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g;"
-find . -maxdepth 1 -name "$findName" -type f | sed "s/.*\///g"
-fi
+find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g; $removeDefault"
+find . -maxdepth 1 -name "$findName" ! -type d | sed "s/.*\///g"
 )
 EOF
 )
-	prompt="$(pwd)/$(printf "%s" "$lsFormat" | dmenu -p "${prompt#$ppassdbHOME}")" || exit 1
+	[ -n "$sortOption" ] && findFormat=$(echo "$findFormat" | sort)
+	dmenuFormat=$(cat << EOF
+$(
+echo "$topOption"
+echo "$findFormat"
+)
+EOF
+)
+	prompt="$(pwd)/$(printf "%s" "$dmenuFormat" | dmenu -p "${prompt#"$ppassdbHOME"}")" || exit 1
 done
 
 #Exit the script if it is not a file
 [ ! -f "$prompt" ] && exit 1
 
 #The decryption part
-[ "$1" = "otp" ] && otpMode="-o"
-PPASSDB_HOME="$(pwd)" "$scriptName" -Dcn $otpMode -i "." -f "${prompt##*/}" || 
+PPASSDB_HOME="$(pwd)" "$scriptName" -Dcn $convertToOtpCode -i "." -f "${prompt##*/}" || 
 { notify-send "Decryption failed" ; exit 1 ; }
