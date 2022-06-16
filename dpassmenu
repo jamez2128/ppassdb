@@ -30,16 +30,21 @@ prompt="$ppassdbHOME"
 while [ -d "$prompt" ] ; do
 	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
 	prompt=$(pwd)
-	[ "$(find "$prompt/" -maxdepth 1 | wc -l)" -eq 1 ] && { notify-send "There is nothing in this directory" && exit 1 ; }
-	# shellcheck disable=SC2012
 	lsFormat=$(cat << EOF
 $(
-[ "$(pwd)" = "$ppassdbHOME" ] && { echo "default"  && ls -A "$prompt" | sed "/default/ d" ; } ||
-ls -a "$prompt"
+if [ "$(pwd)" = "$ppassdbHOME" ] ; then
+echo "default/"
+find . -maxdepth 1 -type d | sed "1d; s/.*\///g; /default/ d; s/.*$/&\//g;"
+[ "$1" = "otp" ] && find . -maxdepth 1 -name "*.otp" -type f | sed "s/.*\///g" || find . -maxdepth 1 -type f | sed "s/.*\///g"
+else
+echo ".."
+find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g;"
+[ "$1" = "otp" ] && find . -maxdepth 1 -name "*.otp" -type f | sed "s/.*\///g" || find . -maxdepth 1 -type f | sed "s/.*\///g"
+fi
 )
 EOF
 )
-	prompt="$(pwd)/$(printf "$lsFormat" | dmenu -p "$prompt")" || exit 1
+	prompt="$(pwd)/$(printf "%s" "$lsFormat" | dmenu -p "${prompt#$ppassdbHOME}")" || exit 1
 done
 
 #Exit the script if it is not a file
