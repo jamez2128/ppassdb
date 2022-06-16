@@ -139,7 +139,6 @@ changeDir() { cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" ;  exit 
 showPath() { changeDir && pwd && exit ; }
 
 listdb() {
-	checkArgs
 	changeDir
 	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" ; exit 1 ; }
 	printf "%s Home Directory %s:" "${0##*/}" "$(pwd)"
@@ -153,8 +152,6 @@ listdb() {
 }
 
 checkArgs() {
-	[ -n "$iD" ] && iD="${iD#/}"
-	[ "$operation" = "list" ] && return
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" && exit 1
 	fileName=$(echo "$fileName" | tr "\/" "_" )
