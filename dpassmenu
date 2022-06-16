@@ -32,12 +32,12 @@ Usage: ${0##*/} [options]
 Options:
 --help	To show this help message
 --otp	Generate an OTP code instead of the
-	encrypted text
+	encrypted text. All files without the
+	.otp at the end are hidden.
 --sort	Sort all files and folders together
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md"
-
 }
 
 # Parses all the arguments
