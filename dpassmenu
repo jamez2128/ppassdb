@@ -28,21 +28,24 @@ unset prompt
 #If the directory is empty, it will exit the script
 prompt="$ppassdbHOME"
 while [ -d "$prompt" ] ; do
-	cd "$prompt"
+	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
 	prompt=$(pwd)
 	[ "$(find "$prompt/" -maxdepth 1 | wc -l)" -eq 1 ] && { notify-send "There is nothing in this directory" && exit 1 ; }
-	[ "$(pwd)" = "$ppassdbHOME" ] && lsOptions="-A" || lsOptions="-a"
-	prompt="$(pwd)/$(ls $lsOptions "$prompt" | dmenu -p "$prompt")" || exit 1
+	# shellcheck disable=SC2012
+	lsFormat=$(cat << EOF
+$(
+[ "$(pwd)" = "$ppassdbHOME" ] && { echo "default"  && ls -A "$prompt" | sed "/default/ d" ; } ||
+ls -a "$prompt"
+)
+EOF
+)
+	prompt="$(pwd)/$(printf "$lsFormat" | dmenu -p "$prompt")" || exit 1
 done
 
 #Exit the script if it is not a file
 [ ! -f "$prompt" ] && exit 1
 
-#Format the variables for decryption
-fileName=${prompt##*/}
-iD=${prompt#$ppassdbHOME/} iD=${iD%/$fileName}
-
 #The decryption part
 [ "$1" = "otp" ] && otpMode="-o"
-"$scriptName" -Dcn $otpMode -i "$iD" -f "${prompt##*/}" || 
+PPASSDB_HOME="$(pwd)" "$scriptName" -Dcn $otpMode -i "." -f "${prompt##*/}" || 
 { notify-send "Decryption failed" ; exit 1 ; }
