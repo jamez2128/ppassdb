@@ -6,32 +6,43 @@
 scriptName="ppassdb" 
 
 #Checks for dependencies
-command -v $scriptName > /dev/null || scriptName="./$scriptName"
-command -v $scriptName > /dev/null ||
+command -v "$scriptName" > /dev/null || scriptName="./$scriptName"
+command -v "$scriptName" > /dev/null ||
 { notify-send "The ${scriptName##*/} script could not be found" && exit 127 ; }
 command -v dmenu > /dev/null || { notify-send "dmenu is not installed" && exit 127 ; }
+
+#Gets the full path of the script
+scriptName=$(which "$scriptName")
 
 #Exit the script if dmenu is already running
 pgrep -x dmenu && exit 1
 
 #Exit the script if it does not found any encrypted files
-$scriptName -Ln > /dev/null || exit 1
+"$scriptName" -Ln > /dev/null || exit 1
 
 #Gets the path of the encrypted files
-ppassdbHOME="$($scriptName -P)"
+ppassdbHOME="$("$scriptName" -P)"
 
 #Stops the loop until it finds a file
 unset prompt
-while [ -d "$ppassdbHOME/$prompt" ] ; do
-	#If the directory is empty, it will exit the script
-	[ "$(find "$ppassdbHOME/$prompt" -maxdepth 1 | wc -l)" -eq 1 ] && 
-	{ notify-send "There is nothing in this directory" && exit 1 ; }
-	prompt="$prompt/$(find "$ppassdbHOME/$prompt" -maxdepth 1 -printf "%P\n" | sed "/^$/d" | sort | dmenu)" || exit 1
+#If the directory is empty, it will exit the script
+prompt="$ppassdbHOME"
+while [ -d "$prompt" ] ; do
+	cd "$prompt"
+	prompt=$(pwd)
+	[ "$(find "$prompt/" -maxdepth 1 | wc -l)" -eq 1 ] && { notify-send "There is nothing in this directory" && exit 1 ; }
+	[ "$(pwd)" = "$ppassdbHOME" ] && lsOptions="-A" || lsOptions="-a"
+	prompt="$(pwd)/$(ls $lsOptions "$prompt" | dmenu -p "$prompt")" || exit 1
 done
 
-#Exit the script if it is an invalid file
-[ ! -f "$ppassdbHOME/$prompt" ] && exit 1
+#Exit the script if it is not a file
+[ ! -f "$prompt" ] && exit 1
+
+#Format the variables for decryption
+fileName=${prompt##*/}
+iD=${prompt#$ppassdbHOME/} iD=${iD%/$fileName}
 
 #The decryption part
-$scriptName -Dcn -i "${prompt%/*}" -f "${prompt##*/}" || 
+[ "$1" = "otp" ] && otpMode="-o"
+"$scriptName" -Dcn $otpMode -i "$iD" -f "${prompt##*/}" || 
 { notify-send "Decryption failed" ; exit 1 ; }
