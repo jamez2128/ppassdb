@@ -1,28 +1,6 @@
 #!/bin/sh
 # A simple dmenu script for ppassdb
 
-# This variable is defined to the name of the main script
-# if you renamed the script, make sure it is the same as this variable
-scriptName="ppassdb" 
-
-# Checks for dependencies
-command -v "$scriptName" > /dev/null || scriptName="./$scriptName"
-command -v "$scriptName" > /dev/null ||
-{ notify-send "The ${scriptName##*/} script could not be found" && exit 127 ; }
-command -v dmenu > /dev/null || { notify-send "dmenu is not installed" && exit 127 ; }
-
-# Gets the full path of the script
-scriptName=$(which "$scriptName")
-
-# Exit the script if dmenu is already running
-pgrep -x dmenu && exit 1
-
-# Exit the script if it does not found any encrypted files
-"$scriptName" -Ln > /dev/null || exit 1
-
-# Gets the path of the encrypted files
-ppassdbHOME="$("$scriptName" -P)"
-
 # Help Page
 helpPage() {
 echo "A simple dmenu script for ppassdb
@@ -51,6 +29,28 @@ while [ "$1" ] ; do
 	--help) helpPage ; exit ;;
 	esac
 done
+
+# This variable is defined to the name of the main script
+# if you renamed the script, make sure it is the same as this variable
+scriptName="ppassdb" 
+
+# Checks for dependencies
+command -v "$scriptName" > /dev/null || scriptName="./$scriptName"
+command -v "$scriptName" > /dev/null ||
+{ notify-send "The ${scriptName##*/} script could not be found" && exit 127 ; }
+command -v dmenu > /dev/null || { notify-send "dmenu is not installed" && exit 127 ; }
+
+# Gets the full path of the script
+scriptName=$(which "$scriptName")
+
+# Exit the script if dmenu is already running
+pgrep -x dmenu && exit 1
+
+# Exit the script if it does not found any encrypted files
+"$scriptName" -Ln > /dev/null || exit 1
+
+# Gets the path of the encrypted files
+ppassdbHOME="$("$scriptName" -P)"
 
 # Stops the loop until it finds a file
 unset prompt
