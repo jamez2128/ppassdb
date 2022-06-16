@@ -1,29 +1,29 @@
 #!/bin/sh
-#A simple dmenu script for ppassdb
+# A simple dmenu script for ppassdb
 
-#This variable is defined to the name of the main script
-#if you renamed the script, make sure it is the same as this variable
+# This variable is defined to the name of the main script
+# if you renamed the script, make sure it is the same as this variable
 scriptName="ppassdb" 
 
-#Checks for dependencies
+# Checks for dependencies
 command -v "$scriptName" > /dev/null || scriptName="./$scriptName"
 command -v "$scriptName" > /dev/null ||
 { notify-send "The ${scriptName##*/} script could not be found" && exit 127 ; }
 command -v dmenu > /dev/null || { notify-send "dmenu is not installed" && exit 127 ; }
 
-#Gets the full path of the script
+# Gets the full path of the script
 scriptName=$(which "$scriptName")
 
-#Exit the script if dmenu is already running
+# Exit the script if dmenu is already running
 pgrep -x dmenu && exit 1
 
-#Exit the script if it does not found any encrypted files
+# Exit the script if it does not found any encrypted files
 "$scriptName" -Ln > /dev/null || exit 1
 
-#Gets the path of the encrypted files
+# Gets the path of the encrypted files
 ppassdbHOME="$("$scriptName" -P)"
 
-#Help Page
+# Help Page
 helpPage() {
 echo "A simple dmenu script for ppassdb
 
@@ -40,7 +40,7 @@ https://github.com/jamez2128/ppassdb/blob/master/README.md"
 
 }
 
-#Parses all the arguments
+# Parses all the arguments
 while [ "$1" ] ; do
 	case $1 in
 	--otp) convertToOtpCode="-o" ; shift ;;
@@ -49,9 +49,9 @@ while [ "$1" ] ; do
 	esac
 done
 
-#Stops the loop until it finds a file
+# Stops the loop until it finds a file
 unset prompt
-#If the directory is empty, it will exit the script
+# If the directory is empty, it will exit the script
 prompt="$ppassdbHOME"
 while [ -d "$prompt" ] ; do
 	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
@@ -82,9 +82,9 @@ EOF
 	prompt="$(pwd)/$(printf "%s" "$dmenuFormat" | dmenu -p "${prompt#"$ppassdbHOME"}")" || exit 1
 done
 
-#Exit the script if it is not a file
+# Exit the script if it is not a file
 [ ! -f "$prompt" ] && exit 1
 
-#The decryption part
+# The decryption part
 PPASSDB_HOME="$(pwd)" "$scriptName" -Dcn $convertToOtpCode -i "." -f "${prompt##*/}" || 
 { notify-send "Decryption failed" ; exit 1 ; }
