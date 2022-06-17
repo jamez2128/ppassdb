@@ -366,7 +366,6 @@ echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit
 
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome
-gpgEncryptOptions="-c --cipher-algo AES256"
 
 numOfOperations=0
 OPTIND=1
