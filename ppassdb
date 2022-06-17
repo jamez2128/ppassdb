@@ -362,7 +362,7 @@ decryption() {
 
 # Start of the script
 [ $# -eq 0 ] && noOperation && exit
-echo "$*" | tr " " "\n" | grep -q \\--help > /dev/null && help && exit  
+[ "$1" = "--help" ] && helpPage && exit  
 
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome
