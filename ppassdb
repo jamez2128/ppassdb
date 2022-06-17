@@ -171,7 +171,7 @@ checkOptions() {
 }
 
 checkOS() {
-	if [ -d "/c/Windows" ] ; then oS="Windows"
+	if [ -d "/c/Windows" ] || [ -d "/mnt/c/Windows" ] ; then oS="Windows"
 	else
 		case "$(uname)" in
 		*Linux) oS=$(uname -o) ;; 
