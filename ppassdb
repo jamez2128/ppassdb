@@ -169,7 +169,7 @@ checkOptions() {
 }
 
 checkOS() {
-	{ [ -d "/c/Windows" ] && oS="Windows" ; } || 
+    {  [ -d "/c/Windows" ] || [ -d "/mnt/c/Windows" ] ; } && oS="Windows" || 
 	{
 		case "$(uname)" in
 		*Linux) oS=$(uname -o) ;; 
