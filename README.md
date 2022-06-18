@@ -1,11 +1,10 @@
 # `ppassdb`
-- It is posix compliant shell script that manages encrypted text files.
-- It is a discount, inferior, and a rip-off version of [password-store](https://www.passwordstore.org/).
+- It is POSIX compliant shell script that manages encrypted text files.
+- It is another alternative of [password-store](https://www.passwordstore.org/).
 - It uses `gpg` to encrypt files.
-- Aims for portability in order to easily store them in a USB drive.
+- Aims for portability.
 - Designed to work on most Operating Systems including Android and Windows.
-- It encrypts text files and encrypts them indivdually or with a key pair.
-- You can choose whether to use symetric encryption or with a key pair.
+- It encrypts text files and encrypts them indivdually or with a key pair .
 - It mainly puts the encrypted text to clipboard after decryption.
 - If the script doesn't support the clipboard, there is an option to
 use the web browser instead.
