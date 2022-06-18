@@ -117,7 +117,7 @@ rm  /usr/local/bin/ppassdb
 rm /usr/local/bin/dpassmenu
 ```
 ## Manual
-### `ppassdb`
+### <a name="ppassdb-manual"></a>`ppassdb`
 #### <a name="Usage-ppassdb">Usage
 ```
 ppassdb <operation> [options] <filename>
