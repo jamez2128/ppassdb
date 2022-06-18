@@ -29,16 +29,20 @@ devs.
 	- [Remove encrypted all files](#remove-encrypted-files)
 	- [Uninstall ppassdb](#uninstall-ppassdb)
 	- [Uninstall dpassmenu](#uninstall-dpassmenu)
-- [Run](#Run)
-	- [Usage](#Usage)
-	- [Operations](#Operations)
-	- [Options](#Options)
-		- [Specific for `-E` only](#e-only)
-		- [Specific to both `-D` and `-E`](#d-and-e)
-	- [Examples](#Examples)
-		- [Lists all encrypted file](#example-1)
-		- [Encrypt a text](#example-2)
-		- [Decrypts the password and put it into the system clipboard and clears for a period of time](#example-3)
+- [Manual](#Manual)
+	- [ppassdb](#ppassdb-manual)
+		- [Usage](#Usage-ppassdb)
+		- [Operations](#Operations-ppassdb)
+		- [Options](#Options-ppassdb)
+			- [Specific for `-E` only](#e-only-ppassdb)
+			- [Specific to both `-D` and `-E`](#d-and-e-ppassdb)
+		- [Examples](#Examples)
+			- [Lists all encrypted file](#example-1-ppassdb)
+			- [Encrypt a text](#example-2-ppassdb)
+			- [Decrypts the password and put it into the system clipboard and clears for a period of time](#example-3-ppassdb)
+	- [dpassmenu](#dpassmenu-manual)
+		- [Usage](#Usage-dpassmenu)
+		- [Options](#Options-dpassmenu)
 - [Directory location](#directory-location)
 	- [Priorities for searching existed directories](#search-directory) 
 	- [Priorities for initializing directories](#initialize-directory) 
@@ -46,6 +50,7 @@ devs.
 
 ## Depedencies
 - `gpg`
+- `oauthtool` (For OTP codes)
 
 ### Optional:
 - `tree`
@@ -111,13 +116,14 @@ rm  /usr/local/bin/ppassdb
 ```
 rm /usr/local/bin/dpassmenu
 ```
-## Run
-### Usage
+## Manual
+### `ppassdb`
+#### <a name="Usage-ppassdb">Usage
 ```
 ppassdb <operation> [options] <filename>
 ```
 
-### Operations
+#### <a name="Operations-ppassdb">Operations
 - `-h`, `--help`	To shows this help message
 - `-E`		For adding and encrypting text files.
 - `-D`		For decrypting text file.
@@ -127,10 +133,10 @@ ppassdb <operation> [options] <filename>
 - `-P`		Outputs the path to where all the encrypted
 		files will be stored.
 
-### Options
+#### <a name="Options-ppassdb"></a>Options
 - `-n`      Pushes feedback messages to notifications (Only works on Linux)
 
-#### <a name="e-only"></a>Specific for `-E` only:
+##### <a name="e-only-ppassdb"></a>Specific for `-E` only:
 - `-g`       Auto generates a random string and encrypts it.
 - `-a`	Specify the number of characters to randomly generate.
 - `-t`	Specify the type of characters to randomly generate.
@@ -145,7 +151,7 @@ ppassdb <operation> [options] <filename>
 	Without this option, it will use symetric encryption instead.
 - `-m`	Encrypts a multi-line text instead of a single line.
 
-#### <a name="d-and-e"></a>Specific to both `-D` and `-E`:
+##### <a name="d-and-e-ppassdb"></a>Specific to both `-D` and `-E`:
 - `-d`	This option will not attempt to copy to clipboard.
 - `-c`      Clears the clipboard after a period of time.
 - `-f`      This will be the input file name. `/` are not allowed in this 
@@ -157,21 +163,39 @@ ppassdb <operation> [options] <filename>
 - `-j`      Puts text to the generated html to copy it from the web browser.
 - `-k`	Forgets password after an operation was performed
 
-### Examples
-#### <a name="example-1"></a> Lists all encrypted file:
+#### Examples
+##### <a name="example-1-ppassdb"></a> Lists all encrypted file:
 ```
 ppassdb -L
 ```
 
-#### <a name="example-2"></a>Encrypt a text:
+##### <a name="example-2-ppassdb"></a>Encrypt a text:
 ```
 ppassdb -E -i "username" -f "website.pass" 
 ```
 
-#### <a name="example-3"></a>Decrypts the password and put it into the system clipboard and clears for a period of time:
+##### <a name="example-3-ppassdb"></a>Decrypts the password and put it into the system clipboard and clears for a period of time:
 ```
 ppassdb -Dc -i "username" -f "website.pass"
 ```
+
+### <a name="dpassmenu-manual"></a>`dpassmenu`
+
+A simple dmenu script for ppassdb
+
+#### <a name="Usage-dpassmenu"></a>Usage
+```
+dpassmenu [options]
+```
+
+#### <a name="Options-dpassmenu"></a>Options
+- `--help`		To show this help message
+- `--otp`		Generate an OTP code instead of the
+		encrypted text. All files without the
+		.otp at the end are hidden unless
+		if --show-all is specified.
+- `--show-all`	Show all files even if otp is specified.
+- `--sort`		Sort all files and folders together
 
 ##  <a name="directory-location"></a>Directory Location
 If you want to know where the script saves the files, run this command:
