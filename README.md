@@ -137,8 +137,8 @@ ppassdb <operation> [options] <filename>
 
 ##### <a name="e-only-ppassdb"></a>Specific for `-E` only:
 - `-g`       Auto generates a random string and encrypts it.
-- `-a`	Specify the number of characters to randomly generate.
-- `-t`	Specify the type of characters to randomly generate.
+- `-a` <NUMBER>	Specify the number of characters to randomly generate.
+- `-t` <STRING>	Specify the type of characters to randomly generate.
 	- `[:graph:]` - All printable characters, except whitespace
 	- `[:alnum:]` - All letters and numbers
 	- `[:alpha:]` - Letters only
@@ -146,25 +146,25 @@ ppassdb <operation> [options] <filename>
 	- `[:upper:]` - Small letters only 
 	- `[:digit:]` - Numbers only
 	- For more options, refer to the `tr` manual
-- `-r`	Encrypts it with a existing user ID name made with a key pair.
+- `-r` <GPG-ID>	Encrypts it with a existing user ID name made with a key pair.
 	Without this option, it will use symetric encryption instead.
 - `-m`	Encrypts a multi-line text instead of a single line.
-- `-o`	For decryption, it converts the OTP URL to OTP code. For
-	encryption, it verifies and tell information about the
-	OTP URL to encrypt so to know whether the URL is valid
-	for code generation.
 
 ##### <a name="d-and-e-ppassdb"></a>Specific to both `-D` and `-E`:
 - `-d`	This option will not attempt to copy to clipboard.
 - `-c`      Clears the clipboard after a period of time.
-- `-f`      This will be the input file name. `/` are not allowed in this 
+- `-f` <FILENAME>     This will be the input file name. `/` are not allowed in this 
         option and will be replaced with `_` if present.
-- `-i`      An identifier to group encrypted files. This is optional and if 
+- `-i` <ID NAME>      An identifier to group encrypted files. This is optional and if 
         this option is not called, it will use the default folder.
 - `-s`      Shows the text. This will return a successful exit status even if 
         the clipboard failed.
 - `-j`      Puts text to the generated html to copy it from the web browser.
 - `-k`	Forgets password after an operation was performed
+- `-o`	For decryption, it converts the OTP URL to OTP code. For
+	encryption, it verifies and tell information about the
+	OTP URL to encrypt so to know whether the URL is valid
+	for code generation.
 
 #### Examples
 ##### <a name="example-1-ppassdb"></a> Lists all encrypted file:
