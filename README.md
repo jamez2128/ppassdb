@@ -210,7 +210,7 @@ If you want to know all the possible locations, it is listed below
 
 ###  <a name="search-directory"></a>Priorities for searching existed directories:
 - `/storage/emulated/0/ppassdb`
-- `$APPDATA/ppassdb`
+- `%APPDATA%\ppassdb`
 - `~/Library/Application Support/ppassdb`
 - `~/.ppassdb`
 - `~/.local/share/ppassdb`
