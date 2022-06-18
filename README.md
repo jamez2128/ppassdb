@@ -219,7 +219,7 @@ If you want to know all the possible locations, it is listed below
 ###  <a name="initialize-directory"></a>Priorities for initializing directories:
 - `/storage/emulated/0/ppassdb`
 - `$APPDATA/ppassdb`
-Current directory- `~/Library/Application Support/ppassdb`
+- `~/Library/Application Support/ppassdb`
 - `$XDG_DATA_HOME/ppassdb`
 - `~/.local/share/ppassdb`
 - `~/.ppassdb`
