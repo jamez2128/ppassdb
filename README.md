@@ -150,6 +150,10 @@ ppassdb <operation> [options] <filename>
 - `-r`	Encrypts it with a existing user ID name made with a key pair.
 	Without this option, it will use symetric encryption instead.
 - `-m`	Encrypts a multi-line text instead of a single line.
+- `-o`	For decryption, it converts the OTP URL to OTP code. For
+	encryption, it verifies and tell information about the
+	OTP URL to encrypt so to know whether the URL is valid
+	for code generation.
 
 ##### <a name="d-and-e-ppassdb"></a>Specific to both `-D` and `-E`:
 - `-d`	This option will not attempt to copy to clipboard.

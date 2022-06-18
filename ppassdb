@@ -73,6 +73,10 @@ Specific to both -D and -E:
 	the clipboard failed.
 -j	Puts text to the generated html to copy it from the web browser.
 -k	Forgets password after an operation was performed
+-o	For decryption, it converts the OTP URL to OTP code. For
+	encryption, it verifies and tell information about the
+	OTP URL to encrypt so to know whether the URL is valid
+	for code generation.
 
 Examples:
 Lists all encrypted file:
