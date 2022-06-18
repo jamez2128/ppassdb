@@ -88,9 +88,7 @@ ${0##*/} -Dc -i \"username\" -f \"website.pass\"
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md"
 }
-
-checkDependecies() {
-	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
+checkDependecies() { { command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" && exit 127 ; }
 	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
@@ -101,7 +99,10 @@ checkDependecies() {
 
 searchHome() {
 	androidPath="/storage/emulated/0"
-	windowsPath="$APPDATA"
+	# This line is possible thanks to this Reddit thread and especially this comment
+	# https://www.reddit.com/r/bashonubuntuonwindows/comments/8dhhrr/comment/dxoxjzq/?utm_source=share&utm_medium=web2x&context=3
+	[ "$oS" = "Windows" ] && APPDATA=$(cmd.exe /c "echo %APPDATA%" 2>/dev/null | sed -e 's/\r//g ; s/^C:\\//g ; s/\\/\//g')
+	windowsPath="$windowsPrefix/$APPDATA"
 	gnuLinuxPath="$HOME/.local/share"
 	macPath="$HOME/Library/Application Support"
 	xdgPath="$XDG_DATA_HOME"
@@ -122,7 +123,7 @@ searchHome() {
 
 defineHome() {
 	if [ -d "$androidPath" ] ; then PPASSDB_HOME="$androidPath/$dirName"
-	elif [ -d "/c/Windows" ] ; then PPASSDB_HOME="$windowsPath/$dirName"
+	elif [ -d "$windowsPath" ] ; then PPASSDB_HOME="$windowsPath/$dirName"
 	elif [ -d "$macPath" ] ; then PPASSDB_HOME="$macPath/$dirName"
 	elif [ -n "$XDG_DATA_HOME" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
 	elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath" ] ; then
@@ -171,7 +172,12 @@ checkOptions() {
 }
 
 checkOS() {
-	if [ -d "/c/Windows" ] || [ -d "/mnt/c/Windows" ] ; then oS="Windows"
+	msysCDrive="/c"
+	wslCDrive="/mnt/c"
+	if [ -d "$msysCDrive/Windows" ] || [ -d "$wslCDrive/Windows" ] ; then
+		oS="Windows"
+		{ [ -d "$msysCDrive/Windows" ] && windowsPrefix="$msysCDrive" ; } ||
+		{ [ -d "$wslCDrive/Windows" ] && windowsPrefix="$wslCDrive" ; }
 	else
 		case "$(uname)" in
 		*Linux) oS=$(uname -o) ;; 
@@ -364,12 +370,12 @@ decryption() {
 [ $# -eq 0 ] && noOperation && exit
 [ "$1" = "--help" ] && helpPage && exit  
 
+checkOS
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
 [ -z "$PPASSDB_HOME" ] && searchHome
 
 numOfOperations=0
 OPTIND=1
-checkOS
 while getopts ":hEDLPcsji:f:gnt:a:r:dmko" OPTION; do
 	case $OPTION in
 	h) helpPage ; exit ;;
