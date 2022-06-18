@@ -1,6 +1,6 @@
 # `ppassdb`
 - It is POSIX compliant shell script that manages encrypted text files.
-- It is an another alternative of [password-store](https://www.passwordstore.org/).
+- It is an another alternative to [password-store](https://www.passwordstore.org/).
 - It uses `gpg` to encrypt files.
 - Aims for portability.
 - Designed to work on most Operating Systems including Android and Windows.
