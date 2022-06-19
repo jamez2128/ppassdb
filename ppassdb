@@ -92,7 +92,9 @@ ${0##*/} -Dc -i \"username\" -f \"website.pass\"
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md"
 }
-checkDependecies() { { command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
+
+checkDependecies() {
+	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" && exit 127 ; }
 	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
@@ -208,7 +210,7 @@ makeJavaScript() {
 		cat << EOF
 <html>
 	<head>
-	<title> $fileName | $iD | ${0#./} </title>
+	<title> $fileName | $iD | ${0##*/} </title>
 	<script>
 		function copyToClipboard() { 
 			navigator.clipboard.writeText(\`$escapeText\`); 
@@ -274,7 +276,7 @@ oneLinerText() {
 }
 
 multiLinerText() {
-	echo "Type or paste the text you want to encrypt Press Ctrl+D when done:"
+	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"
 	textToEncrypt=$(cat)
 }
 
