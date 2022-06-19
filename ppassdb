@@ -148,7 +148,7 @@ showPath() { changeDir && pwd && exit ; }
 listdb() {
 	changeDir
 	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" ; exit 1 ; }
-	printf "%s Home Directory %s:" "${0##*/}" "$(pwd)"
+	printf "%s Home Directory\n%s\n" "${0##*/}" "$(pwd)"
 	if [ "$(find ./ | wc -l)" -eq 1 ] ; then
 		$message "There are no encrypted files added yet"
 		exit 1
