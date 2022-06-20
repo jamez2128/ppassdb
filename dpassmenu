@@ -54,7 +54,6 @@ ppassdbHOME="$("$scriptName" -P)"
 
 # Stops the loop until it finds a file
 unset prompt
-# If the directory is empty, it will exit the script
 prompt="$ppassdbHOME"
 while [ -d "$prompt" ] ; do
 	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
