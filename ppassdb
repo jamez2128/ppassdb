@@ -27,9 +27,9 @@ defaultTypeOfChars="[:graph:]"
 
 #==========================================================================#
 
-usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" ; }
+usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" 1>&2 ; }
 
-noOperation() { usage ; echo "Type \"${0##*/} --help\" for more info" ; }
+noOperation() { usage ; echo "Type \"${0##*/} --help\" for more info" 1>&2 ; }
 
 helpPage() {
 	usage
@@ -90,15 +90,15 @@ period of time:
 ${0##*/} -Dc -i \"username\" -f \"website.pass\"
 
 For full documentation, refer to the README.md file at
-https://github.com/jamez2128/ppassdb/blob/master/README.md"
+https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
 }
 
 checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
-	{ echo "gnupg is not installed" && exit 127 ; }
+	{ echo "gnupg is not installed" 1>&2 && exit 127 ; }
 	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
-		echo "oathtool is not installed. It is required to generate OTP codes."
+		echo "oathtool is not installed. It is required to generate OTP codes." 1>&2
 		exit 1
 	fi
 }
@@ -114,7 +114,7 @@ searchHome() {
 	xdgPath="$XDG_DATA_HOME"
 	
 	if [ -d "$androidPath/$dirName"  ] ; then
-		[ ! -w "$androidPath" ] && echo "You don't have write permissions in Termux" && exit 1
+		[ ! -w "$androidPath" ] && echo "You don't have write permissions in Termux" 1>&2 && exit 1
 		PPASSDB_HOME="$androidPath/$dirName"
 	elif [ -d "$windowsPath/$dirName" ] ; then
 		PPASSDB_HOME="$windowsPath/$dirName"
@@ -141,16 +141,16 @@ defineHome() {
 	mkdir -p "$PPASSDB_HOME"
 }
 
-changeDir() { cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" ;  exit 2 ; } ; }
+changeDir() { cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" 1>&2 ;  exit 2 ; } ; }
 
 showPath() { changeDir && pwd && exit ; }
 
 listdb() {
 	changeDir
-	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" ; exit 1 ; }
+	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" 1>&2 ; exit 1 ; }
 	printf "%s Home Directory\n%s\n" "${0##*/}" "$(pwd)"
 	if [ "$(find ./ | wc -l)" -eq 1 ] ; then
-		$message "There are no encrypted files added yet"
+		$message "There are no encrypted files added yet" 1>&2
 		exit 1
 	else
 		{ command -v "tree" > /dev/null && tree -aR ; } || ls -AR
@@ -160,17 +160,17 @@ listdb() {
 
 checkArgs() {
 	[ -z "$iD" ] && iD="default"
-	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" && exit 1
+	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" 1>&2 && exit 1
 	fileName=$(echo "$fileName" | tr "\/" "_" )
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
 	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
-	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" && exit 1 ; }
+	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" 1>&2 && exit 1 ; }
 }
 
 checkOptions() {
 	[ -z "$gpgEncryptOptions" ] && gpgEncryptOptions="-c --cipher-algo AES256"
 	[ -n "$unknownOption" ] && exit 1
-	[ "$numOfOperations" -gt 1 ] && echo "Only one operation can be used at a time" && exit 1
+	[ "$numOfOperations" -gt 1 ] && echo "Only one operation can be used at a time" 1>&2 && exit 1
 	[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
 	{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 	[ -z "$message" ] && message="echo"
@@ -202,7 +202,7 @@ makeJavaScript() {
 		javaScriptPath="/storage/emulated/0/$fileNameOnly}"
 	elif [ "$oS" = "Android" ] ; then
 		unset javaScriptPath
-		echo "You don't have write permissions in Termux" 
+		echo "You don't have write permissions in Termux" 1>&2
 		[ -z "$showTextOption" ] && exit 1
 	fi
 	[ -n "$javaScriptPath" ] && 
@@ -231,9 +231,9 @@ EOF
 		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
 		*) command -v open > /dev/null && open "$javaScriptPath" > /dev/null 2>&1 ;;
 		esac
-		echo "Your decrypted file is in file://$javaScriptPath"
-		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage"
-		echo "This file will be deleted in $deleteJavaScriptTime seconds"
+		echo "Your decrypted file is in file://$javaScriptPath" 1>&2
+		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&2
+		echo "This file will be deleted in $deleteJavaScriptTime seconds" 1>&2
 		sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
 	fi
 }
@@ -241,7 +241,7 @@ EOF
 showText() { echo "$textToCopy" ; }
 
 clearClipboard() {
-	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds"
+	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds" 1>&2
 	sleep $clearClipboardTime && head /dev/null | $clipboard &
 }
 
@@ -257,26 +257,26 @@ copyToClipboard() {
 		;;
 	esac
 	if [ -n "$clipboard" ] ; then
-		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully"
+		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" 1>&2
 		$clearClipOption	
 	else
-		$message "Could not find any clipboards"
+		$message "Could not find any clipboards" 1>&2
 		[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127
 	fi
 }
 
-generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/urandom 2>&1 | head -c "$numberOfChars") ; }
+generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/urandom 2>/dev/null | head -c "$numberOfChars") ; }
 
 oneLinerText() {
 	stty -echo
-	printf "Enter text to encrypt: " && read -r textToEncrypt ; echo
-	printf "Enter the same text again: " && read -r confirmText ; echo	
+	printf "Enter text to encrypt: " 1>&2 && read -r textToEncrypt ; echo
+	printf "Enter the same text again: " 1>&2 && read -r confirmText ; echo	
 	stty echo
-	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" && exit 1 ; }
+	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" 1>&2 && exit 1 ; }
 }
 
 multiLinerText() {
-	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"
+	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"  1>&2
 	textToEncrypt=$(cat)
 }
 
@@ -287,9 +287,9 @@ encryption() {
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 		if [ -n "$otpOption" ] ; then
-			otp "$textToEncrypt" && echo "$fileName: OTP URL Validated"
+			otp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&2 
 		else
-			echo "$fileName: OTP URL provided may be invalid"
+			echo "$fileName: OTP URL provided may be invalid" 1>&2 
 		fi
 	fi
 	$askPassEverytime
@@ -311,7 +311,7 @@ otp() {
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) $message "$fileName: Not a valid OTP auth URL" ; $failAction ;;
+	*) $message "$fileName: Not a valid OTP auth URL" 1>&2 ; $failAction ;;
 	esac
 
 	case $1 in
@@ -319,7 +319,7 @@ otp() {
 	*) 
 		[ "$otpType" = "hotp" ] && 
 		{
-			echo "$fileName: Not a valid HOTP URL. No counter provided."
+			echo "$fileName: Not a valid HOTP URL. No counter provided." 1>&2
 	      		{ [ "$operation" = "decrypt" ] && exit 1 ; }
 			otpValidate=1
        		} 
@@ -329,7 +329,7 @@ otp() {
 	case $1 in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
 	*)
-		echo "$fileName Invalid URL. No secret is provided"
+		echo "$fileName Invalid URL. No secret is provided" 1>&2
 	       	{ [ "$operation" = "decrypt" ] && exit 1 ; }
 		otpValidate=1
 	;;
@@ -352,7 +352,7 @@ otp() {
 
 	case $otpType in
 	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
-	hotp) $message "Only TOTP URL's are supported at this time." ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
+	hotp) $message "Only TOTP URL's are supported at this time." 1>&2 ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
 	esac
 	[ "$operation" = "encrypt" ] && return $otpValidate
 
@@ -364,7 +364,7 @@ decryption() {
 	checkDependecies
 	checkArgs
 	$askPassEverytime
-	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null) || exit 1
+	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null || exit 1)
 	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
@@ -413,5 +413,5 @@ decrypt) decryption ;;
 encrypt) encryption "$gpgEncryptOptions" ;;
 list) listdb ;;
 path) showPath ;;
-*) echo "No operation was specified" ; noOperation ;;
+*) echo "No operation was specified" 1>&2 ; noOperation ;;
 esac
