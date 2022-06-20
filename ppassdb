@@ -234,7 +234,7 @@ EOF
 		echo "Your decrypted file is in file://$javaScriptPath" 1>&2
 		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&2
 		echo "This file will be deleted in $deleteJavaScriptTime seconds" 1>&2
-		sleep $deleteJavaScriptTime && rm "$javaScriptPath" &
+		sleep $deleteJavaScriptTime && [ -f "$javaScriptPath" ] && rm "$javaScriptPath" &
 	fi
 }
 
@@ -374,7 +374,7 @@ decryption() {
 
 # Start of the script
 [ $# -eq 0 ] && noOperation && exit
-[ "$1" = "--help" ] && helpPage && exit  
+[ "$1" = "--help" ] && helpPage 2>&1 && exit  
 
 checkOS
 [ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
