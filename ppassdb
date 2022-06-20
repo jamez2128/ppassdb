@@ -161,7 +161,7 @@ listdb() {
 checkArgs() {
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" 1>&2 && exit 1
-	fileName=$(echo "$fileName" | tr "\/" "_" )
+	case $fileName in */*) echo "/'s are not accepted in file names." 1>&2 ; exit 1 ;; esac
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
 	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
 	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" 1>&2 && exit 1 ; }
