@@ -141,7 +141,7 @@ defineHome() {
 	mkdir -p "$PPASSDB_HOME"
 }
 
-changeDir() { cd "$PPASSDB_HOME" || { echo "ppassdb home doesn't exist" 1>&2 ;  exit 2 ; } ; }
+changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&2 ;  exit 2 ; } ; }
 
 showPath() { changeDir && pwd && exit ; }
 
@@ -159,6 +159,9 @@ listdb() {
 }
 
 checkArgs() {
+	# Thanks to pass for this line for detecting sneaky paths
+	[ -n "$iD" ] && echo "$iD" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
+		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
 	[ -z "$iD" ] && iD="default"
 	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" 1>&2 && exit 1
 	case $fileName in */*) echo "/'s are not accepted in file names." 1>&2 ; exit 1 ;; esac
