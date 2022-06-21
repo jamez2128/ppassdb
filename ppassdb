@@ -294,7 +294,7 @@ encryption() {
 	fi
 	$askPassEverytime
 	# shellcheck disable=SC2086
-	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit 1
+	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy="$textToEncrypt"
 	[ -z "$dontCopyOption" ] && [ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
@@ -364,7 +364,7 @@ decryption() {
 	checkDependecies
 	checkArgs
 	$askPassEverytime
-	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null || exit 1)
+	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null) || exit $?
 	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
