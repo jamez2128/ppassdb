@@ -68,8 +68,8 @@ while [ -d "$prompt" ] ; do
 	fi
 	findFormat=$(cat << EOF
 $(
-find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g; $removeDefault"
-find . -maxdepth 1 -name "$findName" ! -type d | sed "s/.*\///g"
+find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g; $removeDefault" | sort
+find . -maxdepth 1 -name "$findName" ! -type d | sed "s/.*\///g" | sort
 )
 EOF
 )
