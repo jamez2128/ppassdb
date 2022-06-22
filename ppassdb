@@ -2,9 +2,8 @@
 
 #===========================Configurations=================================#
 
-clearClipboardTime=15
-deleteJavaScriptTime=30
-dirName="${0##*/}"
+defaultClearClipboardTime=15
+defaultDeleteHTMLTime=30
 
 ## Number of characters to number randomly generate
 defaultNumberOfChars=16
@@ -35,22 +34,22 @@ helpPage() {
 	usage
 	echo "
 Operations:
--h, --help	To shows this help message.
--E		For adding and encrypting text files.
--D		For decrypting text file.
--L		Lists all the added encrypted text files. If -i
+help, --help	To shows this help message.
+add, insert	For adding and encrypting text files.
+open		For decrypting and opening an encrypted text file
+list, ls	Lists all the added encrypted text files. If --catergory=
 		is not specified, it will list all encrypted files
 		from all groups.
--P		Outputs the path to where all the encrypted files
+location, pwd	Outputs the path to where all the encrypted files
 		will be stored.
 
 Options:
--n	Pushes feedback messages to notifications (Only works on Linux)
+--notify	Pushes feedback messages to notifications (Only works on Linux)
 
-Specific for -E only:
--g	Auto generates a random string and encrypts it.
--a <NUMBER>	Specify the number of characters to randomly generate.
--t <STRING>	Specify the type of characters to randomly generate.
+Specific for add only:
+--generate		Auto generates a random string and encrypts it.
+--char-length=<NUMBER>	Specify the number of characters to randomly generate.
+--char-type=<STRING>	Specify the type of characters to randomly generate.
 	[:graph:] - All printable characters, except whitespace
 	[:alnum:] - All letters and numbers
 	[:alpha:] - Letters only
@@ -58,25 +57,27 @@ Specific for -E only:
 	[:upper:] - Small letters only 
 	[:digit:] - Numbers only
 	For more options, refer to the tr manual
--r <GPG ID>	Encrypts it with a existing user ID name made with a key pair.
-	Without this option, it will use symetric encryption instead.
--m	Encrypts a multi-line text instead of a single line.
+-r <GPG ID>, --recipient=<GPG ID>	Encrypts it with a existing user ID name
+					made with a key pair. Without this option,
+					it will use symetric encryption instead.
+-m, --multi-line			Encrypts a multi-line text instead of a
+					single line.
 
-Specific to both -D and -E:
--d	This option will not attempt to copy to clipboard.
--c	Clears the clipboard after a period of time.
--f <FILENAME>	This will be the input file name. \"/\" are not allowed in this 
-	option and will be replaced with \"_\" if present.
--i <ID NAME>	An identifier to group encrypted files. This is optional and if 
-	this option is not called, it will use the default folder.
--s	Shows the text. This will return a successful exit status even if 
-	the clipboard failed.
--j	Puts text to the generated html to copy it from the web browser.
--k	Forgets password after an operation was performed
--o	For decryption, it converts the OTP URL to OTP code. For
-	encryption, it verifies and tell information about the
-	OTP URL to encrypt so to know whether the URL is valid
-	for code generation.
+Specific to both unlocking and adding:
+-n, --no-clip	This option will not attempt to copy to clipboard.
+-l, --clear		Clears the clipboard after a period of time.
+-c <name>, --category=<name>	An identifier to group encrypted files. 
+				This is optional and if this option is 
+				not called, it will use the default folder.
+-o, --show-secret	Shows the text. This will return a successful exit
+			status even if the clipboard failed.
+--html	Puts text to the generated html to 
+		copy it from the web browser.
+--forget	Forgets password after an operation was performed
+--otp	For decryption, it converts the OTP URL to OTP code. For
+		encryption, it verifies and tell information about the
+		OTP URL to encrypt so to know whether the URL is valid
+		for code generation.
 
 Examples:
 Lists all encrypted file:
@@ -104,6 +105,7 @@ checkDependecies() {
 }
 
 searchHome() {
+	dirName="${0##*/}"
 	androidPath="/storage/emulated/0"
 	# This line is possible thanks to this Reddit thread and especially this comment
 	# https://www.reddit.com/r/bashonubuntuonwindows/comments/8dhhrr/comment/dxoxjzq/?utm_source=share&utm_medium=web2x&context=3
@@ -163,19 +165,14 @@ checkArgs() {
 	[ -n "$iD" ] && echo "$iD" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
 		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
 	[ -z "$iD" ] && iD="default"
-	[ -z "$fileName" ] && echo "No name was specified. Please use -f option" 1>&2 && exit 1
 	case $fileName in */*) echo "/'s are not accepted in file names." 1>&2 ; exit 1 ;; esac
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
 	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
-	[ "$operation" = "decrypt" ] && [ ! -e "$inputFile" ] && { echo "There is no input file" 1>&2 && exit 1 ; }
+	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "There is no input file" 1>&2 && exit 1 ; }
 }
 
 checkOptions() {
 	[ -z "$gpgEncryptOptions" ] && gpgEncryptOptions="-c --cipher-algo AES256"
-	[ -n "$unknownOption" ] && exit 1
-	[ "$numOfOperations" -gt 1 ] && echo "Only one operation can be used at a time" 1>&2 && exit 1
-	[ -z "$typeOfChars" ] && typeOfChars="$defaultTypeOfChars"
-	{ [ -z "$numberOfChars" ] || printf "%i" "$numberOfChars" | grep "[A-Za-z\W\S_]" || [ "$numberOfChars" -le 0 ] ; } && numberOfChars=$defaultNumberOfChars
 	[ -z "$message" ] && message="echo"
 	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck
 }
@@ -197,18 +194,18 @@ checkOS() {
 
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
-makeJavaScript() {
+makeHTML() {
 	escapeText=$(printf "%s" "$textToCopy" | sed 's/[\\`]/\\&/g')
-	javaScriptPath=$(mktemp -u).html
-	fileNameOnly=${javaScriptPath##*/}
+	htmlPath=$(mktemp -u).html
+	fileNameOnly=${htmlPath##*/}
 	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
-		javaScriptPath="/storage/emulated/0/$fileNameOnly}"
+		htmlPath="/storage/emulated/0/$fileNameOnly}"
 	elif [ "$oS" = "Android" ] ; then
-		unset javaScriptPath
+		unset htmlPath
 		echo "You don't have write permissions in Termux" 1>&2
-		[ -z "$showTextOption" ] && exit 1
+		[ -z "$showSecretOption" ] && exit 1
 	fi
-	[ -n "$javaScriptPath" ] && 
+	[ -n "$htmlPath" ] && 
 	{
 		cat << EOF
 <html>
@@ -227,25 +224,25 @@ makeJavaScript() {
 </body>
 </html>
 EOF
-	} > "$javaScriptPath"
-	if [ -n "$javaScriptPath" ] ; then
+	} > "$htmlPath"
+	if [ -n "$htmlPath" ] ; then
 		case "$oS" in
-		"Windows") start "$javaScriptPath" ;;
-		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$javaScriptPath" > /dev/null 2>&1 ;;
-		*) command -v open > /dev/null && open "$javaScriptPath" > /dev/null 2>&1 ;;
+		"Windows") start "$htmlPath" ;;
+		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$htmlPath" > /dev/null 2>&1 ;;
+		*) command -v open > /dev/null && open "$htmlPath" > /dev/null 2>&1 ;;
 		esac
-		echo "Your decrypted file is in file://$javaScriptPath" 1>&2
+		echo "Your decrypted file is in file://$htmlPath" 1>&2
 		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&2
-		echo "This file will be deleted in $deleteJavaScriptTime seconds" 1>&2
-		sleep $deleteJavaScriptTime && [ -f "$javaScriptPath" ] && rm "$javaScriptPath" &
+		echo "This file will be deleted in $deleteHTMLTime seconds" 1>&2
+		sleep "$deleteHTMLTime" && [ -f "$htmlPath" ] && rm "$htmlPath" &
 	fi
 }
 
-showText() { echo "$textToCopy" ; }
+showSecret() { echo "$textToCopy" ; }
 
 clearClipboard() {
 	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds" 1>&2
-	sleep $clearClipboardTime && head /dev/null | $clipboard &
+	sleep "$clearClipboardTime" && head /dev/null | $clipboard &
 }
 
 copyToClipboard() {
@@ -261,10 +258,11 @@ copyToClipboard() {
 	esac
 	if [ -n "$clipboard" ] ; then
 		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" 1>&2
-		$clearClipOption	
+		[ -n "$clearClipOption" ] && clearClipboard
+		
 	else
 		$message "Could not find any clipboards" 1>&2
-		[ -z "$showTextOption" ] && [ -z "$javaScriptOption" ] && exit 127
+		[ -z "$showSecretOption" ] && [ -z "$htmlOption" ] && exit 127
 	fi
 }
 
@@ -286,7 +284,7 @@ multiLinerText() {
 encryption() {
 	checkDependecies
 	checkArgs
-	if [ -n "$generateRandomTextOption" ]; then $generateRandomTextOption
+	if [ -n "$generateOption" ]; then generateRandomText
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 		if [ -n "$otpOption" ] ; then
@@ -300,9 +298,9 @@ encryption() {
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy="$textToEncrypt"
-	[ -z "$dontCopyOption" ] && [ -n "$generateRandomTextOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
-	$javaScriptOption
-	$showTextOption
+	[ -z "$dontCopyOption" ] && [ -n "$generateOption" ] && [ -z "$htmlOption" ] && copyToClipboard
+	[ -n "$htmlOption" ] && makeHTML
+	[ -n "$showSecretOption" ] && showSecret
 }
 
 otp() {
@@ -370,44 +368,56 @@ decryption() {
 	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null) || exit $?
 	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
-	[ -z "$dontCopyOption" ] && [ -z "$javaScriptOption" ] && copyToClipboard
-	$javaScriptOption 
-	$showTextOption
+	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && copyToClipboard
+	[ -n "$htmlOption" ] && makeHTML
+	[ -n "$showSecretOption" ] && showSecret
+}
+
+checkEnvVars() {
+	if [ -n "$PPASSDB_HOME" ] ; then [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
+	else searchHome
+	fi
+	{ [ -n "$PPASSDB_CLEAR_TIME" ] && clearClipboardTime=$(printf "%i" "$PPASSDB_CLEAR_TIME") ; } || clearClipboardTime="$defaultClearClipboardTime"
+	{ [ -n "$PPASSDB_DELETE_HTML_TIME" ] && deleteHTMLTime="$PPASSDB_DELETE_HTML_TIME" ; } || deleteHTMLTime="$defaultDeleteHTMLTime"
+	{ [ -n "$PPASSDB_GENERATE_CHAR_TYPE" ] && typeOfChars="$PPASSDB_GENERATE_CHAR_TYPE" ; } || typeOfChars="$defaultTypeOfChars"
+	[ -n "$PPASSDB_GENERATE_CHAR_LENGTH" ] && { numberOfChars=$(printf "%i" "$PPASSDB_GENERATE_CHAR_LENGTH") ; } || numberOfChars="$defaultNumberOfChars"
 }
 
 # Start of the script
-[ $# -eq 0 ] && noOperation && exit
-[ "$1" = "--help" ] && helpPage 2>&1 && exit  
-
+[ $# -eq 0 ] && noOperation && exit 1
 checkOS
-[ -n "$PPASSDB_HOME" ] && [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
-[ -z "$PPASSDB_HOME" ] && searchHome
+checkEnvVars
 
-numOfOperations=0
-OPTIND=1
-while getopts ":hEDLPcsji:f:gnt:a:r:dmko" OPTION; do
-	case $OPTION in
-	h) helpPage ; exit ;;
-	D) numOfOperations=$((numOfOperations+1)) operation=decrypt ;;
-	E) numOfOperations=$((numOfOperations+1)) operation=encrypt ;;
-	L) numOfOperations=$((numOfOperations+1)) operation=list ;;
-	o) otpOption=" " ;;
-	P) numOfOperations=$((numOfOperations+1)) operation=path ;;
-	d) dontCopyOption=" " ;;
-	c) clearClipOption='clearClipboard' ;;
-	s) showTextOption='showText' ;;
-	j) javaScriptOption='makeJavaScript' ;;
-	i) iD="$OPTARG" ;;
-	f) fileName="$OPTARG" ;;
-	g) generateRandomTextOption='generateRandomText' ;;
-	n) command -v notify-send > /dev/null && message="notify-send" ;;
-	t) typeOfChars="$OPTARG" ;;
-	a) numberOfChars="$OPTARG" ;;
-	r) gpgEncryptOptions="-e -r $OPTARG" ;;
-	m) multiLineOption=" " ;;
-	k) forgetImmediatelyOption=" " ;;
-	*) unknownOption=" " ; echo "-$OPTARG is an unknown option" ;;
+case "$1" in
+	--help|help) helpPage 2>&1 ; exit ;;
+	add|insert) operation="encrypt";;
+	list|ls) operation="list";;
+	location|pwd) operation="path" ;;
+	open) operation="decrypt" ;;
+	*) echo "No operation specified" 1>&2 ; exit 1;;
+esac
+shift
+
+while [ -n "$1" ] ; do
+	case "$1" in
+	--otp) otpOption=" " ;;
+	-n|--no-clip) dontCopyOption=" " ;;
+	-o|--show-secret) showSecretOption=" " ;;
+	-l|--clear) clearClipOption=" " ;;
+	--html) htmlOption=" " ;;
+	-f|--forget) forgetImmediatelyOption=" " ;;
+	-g|--generate) generateOption=" " ;;
+	--char-length=*) numberOfChars=$(printf "%i" "${1#*=}") || exit $? ;;
+	--char-type=*) typeOfChars=${1#*=} ;;
+	--notify) command -v notify-send > /dev/null && message="notify-send" ;;
+	-m|--multi-line) multiLineOption=" " ;;
+	-c) shift ; iD="$1" ;;
+	--category=*) iD=${1#*=} ;;
+	-r) shift ; gpgEncryptOptions="-e -r $1" ;;
+	--recipient=*) gpgEncryptOptions="-e -r ${1#*=}" ;;
+	*) [ -z "$fileName" ] && fileName="$1" ;;
 	esac
+	shift
 done
 checkOptions
 
@@ -416,5 +426,5 @@ decrypt) decryption ;;
 encrypt) encryption "$gpgEncryptOptions" ;;
 list) listdb ;;
 path) showPath ;;
-*) echo "No operation was specified" 1>&2 ; noOperation ;;
 esac
+exit 0

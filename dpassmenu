@@ -21,13 +21,14 @@ https://github.com/jamez2128/ppassdb/blob/master/README.md"
 }
 
 # Parses all the arguments
-while [ "$1" ] ; do
+while [ -n "$1" ] ; do
 	case $1 in
-	--otp) convertToOtpCode="-o" ; shift ;;
-	--sort) sortOption=" " ; shift ;;
-	--show-all) showAllOption=" " ; shift ;;
+	--otp) convertToOtpCode="--otp";;
+	--sort) sortOption=" "  ;;
+	--show-all) showAllOption=" " ;;
 	--help) helpPage ; exit ;;
 	esac
+	shift
 done
 
 # This variable is defined to the name of the main script
@@ -47,10 +48,10 @@ scriptName=$(which "$scriptName")
 pgrep -x dmenu && exit 1
 
 # Exit the script if it does not found any encrypted files
-"$scriptName" -Ln > /dev/null || exit 1
+"$scriptName" list --notify > /dev/null || exit 1
 
 # Gets the path of the encrypted files
-ppassdbHOME="$("$scriptName" -P)"
+ppassdbHOME="$("$scriptName" location)"
 
 # Stops the loop until it finds a file
 unset prompt
@@ -88,5 +89,5 @@ done
 [ ! -f "$prompt" ] && exit 1
 
 # The decryption part
-PPASSDB_HOME="$(pwd)" "$scriptName" -Dcn $convertToOtpCode -i "." -f "${prompt##*/}" || 
+PPASSDB_HOME="$(pwd)" "$scriptName" open --notify --clear $convertToOtpCode --category="." "${prompt##*/}" || 
 { notify-send "Decryption failed" ; exit 1 ; }
