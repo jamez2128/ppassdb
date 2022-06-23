@@ -89,5 +89,5 @@ done
 [ ! -f "$prompt" ] && exit 1
 
 # The decryption part
-PPASSDB_HOME="$(pwd)" "$scriptName" open --notify --clear $convertToOtpCode --category="." "${prompt##*/}" || 
+PPASSDB_HOME="$(pwd)" "$scriptName" open --notify --clear $convertToOtpCode --category="." -- "${prompt##*/}" || 
 { notify-send "Decryption failed" ; exit 1 ; }

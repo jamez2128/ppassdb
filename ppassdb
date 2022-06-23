@@ -57,18 +57,18 @@ Specific for add only:
 	[:upper:] - Small letters only 
 	[:digit:] - Numbers only
 	For more options, refer to the tr manual
--r <GPG ID>, --recipient=<GPG ID>	Encrypts it with a existing user ID name
-					made with a key pair. Without this option,
-					it will use symetric encryption instead.
--m, --multi-line			Encrypts a multi-line text instead of a
-					single line.
+--recipient=<GPG ID>	Encrypts it with a existing user ID name made 
+			with a key pair. Without this option, it will 
+			use symetric encryption instead.
+--multi-line		Encrypts a multi-line text instead of a
+			single line.
 
 Specific to both unlocking and adding:
 -n, --no-clip	This option will not attempt to copy to clipboard.
 -l, --clear		Clears the clipboard after a period of time.
--c <name>, --category=<name>	An identifier to group encrypted files. 
-				This is optional and if this option is 
-				not called, it will use the default folder.
+--category=<name>	An identifier to group encrypted files. This is 
+			optional and if this option is not called, it 
+			will use the default folder.
 -o, --show-secret	Shows the text. This will return a successful exit
 			status even if the clipboard failed.
 --html	Puts text to the generated html to 
@@ -80,15 +80,15 @@ Specific to both unlocking and adding:
 		for code generation.
 
 Examples:
-Lists all encrypted file:
-${0##*/} -L
+List all encrypted files:
+${0##*/} list
 
 Encrypt a text:
-${0##*/} -E -i \"username\" -f \"website.pass\" 
+${0##*/} add --category=\"username\" \"website.pass\" 
 
 Decrypts the password and put it into the system clipboard and clears for a 
 period of time:
-${0##*/} -Dc -i \"username\" -f \"website.pass\"
+${0##*/} open --clear --category\"username\" \"website.pass\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
@@ -160,7 +160,7 @@ listdb() {
 	
 }
 
-checkArgs() {
+checkFileName() {
 	# Thanks to pass for this line for detecting sneaky paths
 	[ -n "$iD" ] && echo "$iD" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
 		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
@@ -168,11 +168,11 @@ checkArgs() {
 	case $fileName in */*) echo "/'s are not accepted in file names." 1>&2 ; exit 1 ;; esac
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
 	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
-	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "There is no input file" 1>&2 && exit 1 ; }
+	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&2 && exit 1 ; }
 }
 
 checkOptions() {
-	[ -z "$gpgEncryptOptions" ] && gpgEncryptOptions="-c --cipher-algo AES256"
+	{ [ -z "$recipient" ] && gpgEncryptOptions="-c --cipher-algo AES256" ; } || { gpgEncryptOptions="-e -r $recipient" ; }
 	[ -z "$message" ] && message="echo"
 	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck
 }
@@ -283,7 +283,7 @@ multiLinerText() {
 
 encryption() {
 	checkDependecies
-	checkArgs
+	checkFileName
 	if [ -n "$generateOption" ]; then generateRandomText
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
@@ -363,7 +363,7 @@ otp() {
 
 decryption() {
 	checkDependecies
-	checkArgs
+	checkFileName
 	$askPassEverytime
 	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null) || exit $?
 	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
@@ -381,6 +381,7 @@ checkEnvVars() {
 	{ [ -n "$PPASSDB_DELETE_HTML_TIME" ] && deleteHTMLTime="$PPASSDB_DELETE_HTML_TIME" ; } || deleteHTMLTime="$defaultDeleteHTMLTime"
 	{ [ -n "$PPASSDB_GENERATE_CHAR_TYPE" ] && typeOfChars="$PPASSDB_GENERATE_CHAR_TYPE" ; } || typeOfChars="$defaultTypeOfChars"
 	[ -n "$PPASSDB_GENERATE_CHAR_LENGTH" ] && { numberOfChars=$(printf "%i" "$PPASSDB_GENERATE_CHAR_LENGTH") ; } || numberOfChars="$defaultNumberOfChars"
+	[ -n "$PPASSDB_RECIPIENT" ] && recipient="$PPASSDB_RECIPIENT"
 }
 
 # Start of the script
@@ -399,27 +400,30 @@ esac
 shift
 
 while [ -n "$1" ] ; do
+	[ -z "$2" ] && break
 	case "$1" in
-	--otp) otpOption=" " ;;
-	-n|--no-clip) dontCopyOption=" " ;;
-	-o|--show-secret) showSecretOption=" " ;;
-	-l|--clear) clearClipOption=" " ;;
-	--html) htmlOption=" " ;;
-	-f|--forget) forgetImmediatelyOption=" " ;;
-	-g|--generate) generateOption=" " ;;
-	--char-length=*) numberOfChars=$(printf "%i" "${1#*=}") || exit $? ;;
+	--otp) otpOption=" " ; shift ;;
+	-n|--no-clip) dontCopyOption=" " ; shift ;;
+	-o|--show-secret) showSecretOption=" " ; shift ;;
+	-l|--clear) clearClipOption=" " ; shift ;;
+	--html) htmlOption=" " ; shift ;;
+	-f|--forget) forgetImmediatelyOption=" " ; shift ;;
+	-g|--generate) generateOption=" " ; shift ;;
+	--char-length=*) numberOfChars=$(printf "%i" "${1#*=}") || exit $? ; shift ;;
 	--char-type=*) typeOfChars=${1#*=} ;;
-	--notify) command -v notify-send > /dev/null && message="notify-send" ;;
-	-m|--multi-line) multiLineOption=" " ;;
-	-c) shift ; iD="$1" ;;
-	--category=*) iD=${1#*=} ;;
-	-r) shift ; gpgEncryptOptions="-e -r $1" ;;
-	--recipient=*) gpgEncryptOptions="-e -r ${1#*=}" ;;
-	*) [ -z "$fileName" ] && fileName="$1" ;;
+	--notify) command -v notify-send > /dev/null && message="notify-send" ; shift ;;
+	--multi-line) multiLineOption=" " ; shift ;;
+	--category=*) iD=${1#*=} ; shift ;;
+	--recipient=*) recipient=${1#*=} ; shift ;;
+	--) shift ; break  ;;
+	*) echo "$1 is an unknown option" 1>&2 ; exit 1 ;;
 	esac
-	shift
 done
 checkOptions
+if [ "$operation" = "decrypt" ] || [ "$operation" = "encrypt" ] ; then
+	[ -z "$1" ] && { echo "There is no input file" ; exit 1 ; }
+	fileName="$1"
+fi
 
 case "$operation" in
 decrypt) decryption ;;
