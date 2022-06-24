@@ -162,6 +162,7 @@ listdb() {
 
 checkFileName() {
 	# Thanks to pass for this line for detecting sneaky paths
+	[ -z "$fileName" ] && echo "There is not input file" 1>&2 && exit 1
 	[ -n "$iD" ] && echo "$iD" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
 		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
 	[ -z "$iD" ] && iD="default"
@@ -419,11 +420,8 @@ while [ -n "$1" ] ; do
 	*) echo "$1 is an unknown option" 1>&2 ; exit 1 ;;
 	esac
 done
+fileName="$1"
 checkOptions
-if [ "$operation" = "decrypt" ] || [ "$operation" = "encrypt" ] ; then
-	[ -z "$1" ] && { echo "There is no input file" ; exit 1 ; }
-	fileName="$1"
-fi
 
 case "$operation" in
 decrypt) decryption ;;
