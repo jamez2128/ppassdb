@@ -401,7 +401,6 @@ esac
 shift
 
 while [ -n "$1" ] ; do
-	[ -z "$2" ] && break
 	case "$1" in
 	--otp) otpOption=" " ; shift ;;
 	-n|--no-clip) dontCopyOption=" " ; shift ;;
@@ -417,10 +416,9 @@ while [ -n "$1" ] ; do
 	--category=*) iD=${1#*=} ; shift ;;
 	--recipient=*) recipient=${1#*=} ; shift ;;
 	--) shift ; break  ;;
-	*) echo "$1 is an unknown option" 1>&2 ; exit 1 ;;
+	*) { [ -z "$2" ] && fileName="$1" ; shift ; } || { echo "$1 is an unknown option" 1>&2 ; exit 1 ; } ;;
 	esac
 done
-fileName="$1"
 checkOptions
 
 case "$operation" in
