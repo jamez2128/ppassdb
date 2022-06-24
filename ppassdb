@@ -88,7 +88,7 @@ ${0##*/} add --category=\"username\" \"website.pass\"
 
 Decrypts the password and put it into the system clipboard and clears for a 
 period of time:
-${0##*/} open --clear --category\"username\" \"website.pass\"
+${0##*/} open --clear --category=\"username\" \"website.pass\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
