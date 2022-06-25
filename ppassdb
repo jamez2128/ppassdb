@@ -22,7 +22,7 @@ defaultTypeOfChars="[:graph:]"
 #PPASSDB_HOME="./.${0##*/}" 
 
 ## Uncomment to ask the password everytime after previous encryption
-#askPassEverytime="printf RELOADAGENT | gpg-connect-agent"
+#askPassEverytime=" "
 
 #==========================================================================#
 
@@ -175,7 +175,6 @@ checkFileName() {
 checkOptions() {
 	{ [ -z "$recipient" ] && gpgEncryptOptions="-c --cipher-algo AES256" ; } || { gpgEncryptOptions="-e -r $recipient" ; }
 	[ -z "$message" ] && message="echo"
-	[ -z "$askPassEverytime" ] # To get rid of that error in shellcheck
 }
 
 checkOS() {
@@ -294,10 +293,8 @@ encryption() {
 			echo "$fileName: OTP URL provided may be invalid" 1>&2 
 		fi
 	fi
-	$askPassEverytime
 	# shellcheck disable=SC2086
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
-	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy="$textToEncrypt"
 	[ -z "$dontCopyOption" ] && [ -n "$generateOption" ] && [ -z "$htmlOption" ] && copyToClipboard
 	[ -n "$htmlOption" ] && makeHTML
@@ -365,10 +362,10 @@ otp() {
 decryption() {
 	checkDependecies
 	checkFileName
-	$askPassEverytime
+	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null) || exit $?
 	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
-	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent
+	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
 	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && copyToClipboard
 	[ -n "$htmlOption" ] && makeHTML
 	[ -n "$showSecretOption" ] && showSecret
@@ -419,6 +416,7 @@ while [ -n "$1" ] ; do
 	*) { [ -z "$2" ] && fileName="$1" ; shift ; } || { echo "$1 is an unknown option" 1>&2 ; exit 1 ; } ;;
 	esac
 done
+fileName="$1"
 checkOptions
 
 case "$operation" in
