@@ -97,9 +97,9 @@ https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
 checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
-	{ echo "gnupg is not installed" 1>&2 && exit 127 ; }
+	{ echo "gnupg is not installed" 1>&"$outputTo" && exit 127 ; }
 	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
-		echo "oathtool is not installed. It is required to generate OTP codes." 1>&2
+		echo "oathtool is not installed. It is required to generate OTP codes." 1>&"$outputTo"
 		exit 1
 	fi
 }
@@ -116,7 +116,7 @@ searchHome() {
 	xdgPath="$XDG_DATA_HOME"
 	
 	if [ -d "$androidPath/$dirName"  ] ; then
-		[ ! -w "$androidPath" ] && echo "You don't have write permissions in Termux" 1>&2 && exit 1
+		[ ! -w "$androidPath" ] && echo "You don't have write permissions in Termux" 1>&"$outputTo" && exit 1
 		PPASSDB_HOME="$androidPath/$dirName"
 	elif [ -d "$windowsPath/$dirName" ] ; then
 		PPASSDB_HOME="$windowsPath/$dirName"
@@ -143,16 +143,16 @@ defineHome() {
 	mkdir -p "$PPASSDB_HOME"
 }
 
-changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&2 ;  exit 2 ; } ; }
+changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&"$outputTo" ;  exit 2 ; } ; }
 
 showPath() { changeDir && pwd && exit ; }
 
 listdb() {
 	changeDir
-	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" 1>&2 ; exit 1 ; }
+	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" 1>&"$outputTo" ; exit 1 ; }
 	printf "%s Home Directory\n%s\n" "${0##*/}" "$(pwd)"
 	if [ "$(find ./ | wc -l)" -eq 1 ] ; then
-		$message "There are no encrypted files added yet" 1>&2
+		$message "There are no encrypted files added yet" 1>&"$outputTo"
 		exit 1
 	else
 		{ command -v "tree" > /dev/null && tree -aR ; } || ls -AR
@@ -162,19 +162,20 @@ listdb() {
 
 checkFileName() {
 	# Thanks to pass for this line for detecting sneaky paths
-	[ -z "$fileName" ] && echo "There is not input file" 1>&2 && exit 1
+	[ -z "$fileName" ] && echo "There is not input file" 1>&"$outputTo" && exit 1
 	[ -n "$iD" ] && echo "$iD" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
-		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
+		echo "You've attempted to escape the home directory of the script." 1>&"$outputTo" && exit 1
 	[ -z "$iD" ] && iD="default"
-	case $fileName in */*) echo "/'s are not accepted in file names." 1>&2 ; exit 1 ;; esac
+	case $fileName in */*) echo "/'s are not accepted in file names." 1>&"$outputTo" ; exit 1 ;; esac
 	inputFile="$PPASSDB_HOME/$iD/$fileName"
 	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
-	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&2 && exit 1 ; }
+	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&"$outputTo" && exit 1 ; }
 }
 
 checkOptions() {
 	{ [ -z "$recipient" ] && gpgEncryptOptions="-c --cipher-algo AES256" ; } || { gpgEncryptOptions="-e -r $recipient" ; }
 	[ -z "$message" ] && message="echo"
+	[ -n "$silentOption" ] && outputTo="/dev/null" || outputTo="2"
 }
 
 checkOS() {
@@ -202,7 +203,7 @@ makeHTML() {
 		htmlPath="/storage/emulated/0/$fileNameOnly}"
 	elif [ "$oS" = "Android" ] ; then
 		unset htmlPath
-		echo "You don't have write permissions in Termux" 1>&2
+		echo "You don't have write permissions in Termux" 1>&"$outputTo"
 		[ -z "$showSecretOption" ] && exit 1
 	fi
 	[ -n "$htmlPath" ] && 
@@ -231,9 +232,9 @@ EOF
 		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$htmlPath" > /dev/null 2>&1 ;;
 		*) command -v open > /dev/null && open "$htmlPath" > /dev/null 2>&1 ;;
 		esac
-		echo "Your decrypted file is in file://$htmlPath" 1>&2
-		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&2
-		echo "This file will be deleted in $deleteHTMLTime seconds" 1>&2
+		echo "Your decrypted file is in file://$htmlPath" 1>&"$outputTo"
+		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&"$outputTo"
+		echo "This file will be deleted in $deleteHTMLTime seconds" 1>&"$outputTo"
 		sleep "$deleteHTMLTime" && [ -f "$htmlPath" ] && rm "$htmlPath" &
 	fi
 }
@@ -241,7 +242,7 @@ EOF
 showSecret() { echo "$textToCopy" ; }
 
 clearClipboard() {
-	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds" 1>&2
+	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds" 1>&"$outputTo"
 	sleep "$clearClipboardTime" && head /dev/null | $clipboard &
 }
 
@@ -257,11 +258,11 @@ copyToClipboard() {
 		;;
 	esac
 	if [ -n "$clipboard" ] ; then
-		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" 1>&2
+		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" 1>&"$outputTo"
 		[ -n "$clearClipOption" ] && clearClipboard
 		
 	else
-		$message "Could not find any clipboards" 1>&2
+		$message "Could not find any clipboards" 1>&"$outputTo"
 		[ -z "$showSecretOption" ] && [ -z "$htmlOption" ] && exit 127
 	fi
 }
@@ -270,14 +271,14 @@ generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/u
 
 oneLinerText() {
 	stty -echo
-	printf "Enter text to encrypt: " 1>&2 && read -r textToEncrypt ; echo
-	printf "Enter the same text again: " 1>&2 && read -r confirmText ; echo	
+	printf "Enter text to encrypt: " 1>&"$outputTo" && read -r textToEncrypt ; echo
+	printf "Enter the same text again: " 1>&"$outputTo" && read -r confirmText ; echo	
 	stty echo
-	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" 1>&2 && exit 1 ; }
+	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" 1>&"$outputTo" && exit 1 ; }
 }
 
 multiLinerText() {
-	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"  1>&2
+	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"  1>&"$outputTo"
 	textToEncrypt=$(cat)
 }
 
@@ -288,9 +289,9 @@ encryption() {
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 		if [ -n "$otpOption" ] ; then
-			otp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&2 
+			otp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" 
 		else
-			echo "$fileName: OTP URL provided may be invalid" 1>&2 
+			echo "$fileName: OTP URL provided may be invalid" 1>&"$outputTo" 
 		fi
 	fi
 	# shellcheck disable=SC2086
@@ -310,7 +311,7 @@ otp() {
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) $message "$fileName: Not a valid OTP auth URL" 1>&2 ; $failAction ;;
+	*) $message "$fileName: Not a valid OTP auth URL" 1>&"$outputTo" ; $failAction ;;
 	esac
 
 	case $1 in
@@ -318,7 +319,7 @@ otp() {
 	*) 
 		[ "$otpType" = "hotp" ] && 
 		{
-			echo "$fileName: Not a valid HOTP URL. No counter provided." 1>&2
+			echo "$fileName: Not a valid HOTP URL. No counter provided." 1>&"$outputTo"
 	      		{ [ "$operation" = "decrypt" ] && exit 1 ; }
 			otpValidate=1
        		} 
@@ -328,7 +329,7 @@ otp() {
 	case $1 in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
 	*)
-		echo "$fileName Invalid URL. No secret is provided" 1>&2
+		echo "$fileName Invalid URL. No secret is provided" 1>&"$outputTo"
 	       	{ [ "$operation" = "decrypt" ] && exit 1 ; }
 		otpValidate=1
 	;;
@@ -351,7 +352,7 @@ otp() {
 
 	case $otpType in
 	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
-	hotp) $message "Only TOTP URL's are supported at this time." 1>&2 ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
+	hotp) $message "Only TOTP URL's are supported at this time." 1>&"$outputTo" ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
 	esac
 	[ "$operation" = "encrypt" ] && return $otpValidate
 
@@ -393,12 +394,13 @@ case "$1" in
 	list|ls) operation="list";;
 	location|pwd) operation="path" ;;
 	open) operation="decrypt" ;;
-	*) echo "No operation specified" 1>&2 ; exit 1;;
+	*) echo "No operation specified" 1>&2 ; noOperation ; exit 1;;
 esac
 shift
 
 while [ -n "$1" ] ; do
 	case "$1" in
+	-q|--quiet|--silent) silentOption=" " ; shift  ;;
 	--otp) otpOption=" " ; shift ;;
 	-n|--no-clip) dontCopyOption=" " ; shift ;;
 	-o|--show-secret) showSecretOption=" " ; shift ;;
@@ -416,7 +418,7 @@ while [ -n "$1" ] ; do
 	*) { [ -z "$2" ] && fileName="$1" ; shift ; } || { echo "$1 is an unknown option" 1>&2 ; exit 1 ; } ;;
 	esac
 done
-fileName="$1"
+[ -z "$fileName" ] && fileName="$1"
 checkOptions
 
 case "$operation" in
