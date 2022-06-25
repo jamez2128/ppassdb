@@ -175,7 +175,7 @@ checkFileName() {
 checkOptions() {
 	{ [ -z "$recipient" ] && gpgEncryptOptions="-c --cipher-algo AES256" ; } || { gpgEncryptOptions="-e -r $recipient" ; }
 	[ -z "$message" ] && message="echo"
-	[ -n "$silentOption" ] && outputTo="/dev/null" || outputTo="2"
+	[ -n "$silentOption" ] && { outputTo="/dev/null" ; gpgOutput="/dev/null" ; } || { outputTo="2" ; gpgOutput="/dev/stderr" ; }
 }
 
 checkOS() {
@@ -364,7 +364,7 @@ decryption() {
 	checkDependecies
 	checkFileName
 	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
-	textToCopy=$($gnupg -d "$inputFile" 2>/dev/null) || exit $?
+	textToCopy=$($gnupg -d "$inputFile" 2>"$gpgOutput") || exit $?
 	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
 	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && copyToClipboard
