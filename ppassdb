@@ -104,6 +104,7 @@ checkDependecies() {
 		echo "oathtool is not installed. It is required to generate OTP codes." 1>&"$outputTo"
 		exit 1
 	fi
+	[ -n "$qrCodeOption" ] && ! command -v qrencode > /dev/null && { echo "qrencode is not installed. It is required to generate QR codes." 1>&"$outputTo" ; exit 127 ; }
 }
 
 searchHome() {
@@ -177,7 +178,9 @@ checkFileName() {
 checkOptions() {
 	{ [ -z "$recipient" ] && gpgEncryptOptions="-c --cipher-algo AES256" ; } || { gpgEncryptOptions="-e -r $recipient" ; }
 	[ -z "$message" ] && message="echo"
-	[ -n "$silentOption" ] && { outputTo="/dev/null" ; gpgOutput="/dev/null" ; } || { outputTo="2" ; gpgOutput="/dev/stderr" ; }
+	if [ -n "$silentOption" ] ; then outputTo="/dev/null" ; gpgOutput="/dev/null" ; 
+	else outputTo="2" ; gpgOutput="/dev/stderr" ; 
+	fi
 }
 
 checkOS() {
@@ -291,7 +294,7 @@ encryption() {
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 		if [ -n "$otpOption" ] ; then
-			otp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" 
+			validateOtp "$(echo "$textToEncrypt" | head -n 1)" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" 
 		else
 			echo "$fileName: OTP URL provided may be invalid" 1>&"$outputTo" 
 		fi
@@ -304,27 +307,21 @@ encryption() {
 	[ -n "$showSecretOption" ] && showSecret
 }
 
-otp() {
+generateQrCode() {
+	qrencode -t UTF8 "$1"
+}
+
+validateOtp() {
 	otpValidate=0
-	case $operation in
-	encrypt) failAction="return 1" ;;
-	decrypt) failAction="exit 1" ;;
-	esac
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) $message "$fileName: Not a valid OTP auth URL" 1>&"$outputTo" ; $failAction ;;
+	*) $message "$fileName: Not a valid OTP auth URL" 1>&"$outputTo" ; return 1 ;;
 	esac
 
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
-	*) 
-		[ "$otpType" = "hotp" ] && 
-		{
-			echo "$fileName: Not a valid HOTP URL. No counter provided." 1>&"$outputTo"
-	      		{ [ "$operation" = "decrypt" ] && exit 1 ; }
-			otpValidate=1
-       		} 
+	*) [ "$otpType" = "hotp" ] && echo "$fileName: Not a valid HOTP URL. No counter provided." 1>&"$outputTo" && otpValidate=1
 	;;
 	esac
 
@@ -332,7 +329,6 @@ otp() {
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
 	*)
 		echo "$fileName Invalid URL. No secret is provided" 1>&"$outputTo"
-	       	{ [ "$operation" = "decrypt" ] && exit 1 ; }
 		otpValidate=1
 	;;
 	esac
@@ -354,12 +350,14 @@ otp() {
 
 	case $otpType in
 	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
-	hotp) $message "Only TOTP URL's are supported at this time." 1>&"$outputTo" ; { [ "$operation" = "decrypt" ] && exit 1 ; } ;;
+	hotp) $message "Only TOTP URL's are supported at this time." 1>&"$outputTo" ;;
 	esac
-	[ "$operation" = "encrypt" ] && return $otpValidate
+	return $otpValidate
+}
 
+otpCode() {
 	# shellcheck disable=SC2086
-	oathtool -b $oathtoolArgs --digits=$otpDigits "$otpSecret"
+	validateOtp "$1" && oathtool -b $oathtoolArgs --digits=$otpDigits "$otpSecret" || exit $?
 }
 
 decryption() {
@@ -367,11 +365,17 @@ decryption() {
 	checkFileName
 	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy=$($gnupg -d "$inputFile" 2>"$gpgOutput") || exit $?
-	[ -n "$otpOption" ] && textToCopy=$(otp "$textToCopy")
+	[ -n "$otpOption" ] && [ -z "$qrCodeOption" ] && { textToCopy=$(otpCode "$textToCopy") || exit $? ; }
+	if [ -n "$qrCodeOption" ] ; then
+		if [ -n "$otpOption" ] ; then
+ 			validateOtp "$textToCopy" && echo "$fileName: OTP URL validated" 1>&2 || echo "$fileName: This QR code may not work on autheticator apps" 1>&2
+		fi
+		generateQrCode "$textToCopy" 
+	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
-	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && copyToClipboard
-	[ -n "$htmlOption" ] && makeHTML
-	[ -n "$showSecretOption" ] && showSecret
+	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && [ -z "$qrCodeOption" ]  && copyToClipboard
+	[ -n "$htmlOption" ] && [ -z "$qrCodeOption" ] && makeHTML
+	[ -n "$showSecretOption" ] && [ -z "$qrCodeOption" ] && showSecret
 }
 
 checkEnvVars() {
@@ -403,6 +407,7 @@ shift
 while [ -n "$1" ] ; do
 	case "$1" in
 	-q|--quiet|--silent) silentOption=" " ; shift  ;;
+	--qr-code) qrCodeOption=" " ; shift ;;
 	--otp) otpOption=" " ; shift ;;
 	-n|--no-clip) dontCopyOption=" " ; shift ;;
 	-o|--show-secret) showSecretOption=" " ; shift ;;
