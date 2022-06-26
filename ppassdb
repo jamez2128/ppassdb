@@ -44,7 +44,9 @@ location, pwd	Outputs the path to where all the encrypted files
 		will be stored.
 
 Options:
---notify	Pushes feedback messages to notifications (Only works on Linux)
+--notify		Pushes feedback messages to notifications
+			(Only works on Linux)
+-q, --quiet, --silent	Supresses all errors and feedback messages
 
 Specific for add only:
 --generate		Auto generates a random string and encrypts it.
