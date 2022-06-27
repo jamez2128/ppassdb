@@ -242,7 +242,7 @@ or this (Must have XDG_DATA_HOME defined)
 ```
 export PPASSDB_HOME="$XDG_DATA_HOME/ppassdb"
 ```
-It is recommended to set the environmental variable so it does need to check
+It is recommended to set the environmental variable so not it does need to check
 for directories everytime the script runs. You have to suffix an empty directory
 or the directory that has files already made by the script. If you plan to change it,
 make sure to move it to desired directory first before setting an environmental variable.
