@@ -49,6 +49,10 @@ Options:
 -q, --quiet, --silent	Supresses all errors and feedback messages
 
 Specific for add only:
+--image=\"</path/to/image.png>\"	Decodes QR Code and encrypts the text.
+					If it is an OTP. It is highly recommended 
+					to specify --otp to validate it when
+					encrypting.
 --generate		Auto generates a random string and encrypts it.
 --char-length=<NUMBER>	Specify the number of characters to randomly generate.
 --char-type=<STRING>	Specify the type of characters to randomly generate.
@@ -65,7 +69,13 @@ Specific for add only:
 --multi-line		Encrypts a multi-line text instead of a
 			single line.
 
-Specific to both unlocking and adding:
+Specific for open only:
+--qr-code	Encodes decrypted text to QR code. It is useful to scan
+		OTP URL's to authenticator apps on phones. If you are 
+		using it for OTP's, it is recommended to use
+		the --otp option to validate it.
+
+Specific to both open and add operations:
 -n, --no-clip	This option will not attempt to copy to clipboard.
 -l, --clear		Clears the clipboard after a period of time.
 --category=<name>	An identifier to group encrypted files. This is 
@@ -102,9 +112,14 @@ checkDependecies() {
 	{ echo "gnupg is not installed" 1>&"$outputTo" && exit 127 ; }
 	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
 		echo "oathtool is not installed. It is required to generate OTP codes." 1>&"$outputTo"
-		exit 1
+		exit 127
 	fi
-	[ -n "$qrCodeOption" ] && ! command -v qrencode > /dev/null && { echo "qrencode is not installed. It is required to generate QR codes." 1>&"$outputTo" ; exit 127 ; }
+	if [ -n "$qrCodeOption" ] ; then
+		case "$operation" in
+		encrypt) ! command -v zbarimg > /dev/null && { echo "zbarimg is not installed. It is required to add OTP URL's from QR codes " 1>&"$outputTo" ; exit 127  ; } ;;
+		decrypt) ! command -v qrencode > /dev/null && { echo "qrencode is not installed. It is required to generate QR codes." 1>&"$outputTo" ; exit 127 ; } ;;
+		esac
+	fi
 }
 
 searchHome() {
@@ -290,14 +305,16 @@ multiLinerText() {
 encryption() {
 	checkDependecies
 	checkFileName
-	if [ -n "$generateOption" ]; then generateRandomText
+	if [ -n "$generateOption" ] ; then generateRandomText
+	elif [ -n "$imageSource" ] ; then
+		[ -f "$imageSource" ] && { textToEncrypt=$(zbarimg -q --raw "$imageSource") || exit $? ; }
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
-		if [ -n "$otpOption" ] ; then
-			validateOtp "$(echo "$textToEncrypt" | head -n 1)" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" 
-		else
-			echo "$fileName: OTP URL provided may be invalid" 1>&"$outputTo" 
-		fi
+	fi
+	if [ -n "$otpOption" ] ; then
+		validateOtp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" 
+	else
+		echo "$fileName: OTP URL provided may be invalid" 1>&"$outputTo" 
 	fi
 	# shellcheck disable=SC2086
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
@@ -407,6 +424,7 @@ shift
 while [ -n "$1" ] ; do
 	case "$1" in
 	-q|--quiet|--silent) silentOption=" " ; shift  ;;
+	--image=*) imageSource=${1#*=}  ; shift ;;
 	--qr-code) qrCodeOption=" " ; shift ;;
 	--otp) otpOption=" " ; shift ;;
 	-n|--no-clip) dontCopyOption=" " ; shift ;;
