@@ -78,9 +78,6 @@ Specific for open only:
 Specific to both open and add operations:
 -n, --no-clip	This option will not attempt to copy to clipboard.
 -l, --clear		Clears the clipboard after a period of time.
---category=<name>	An identifier to group encrypted files. This is 
-			optional and if this option is not called, it 
-			will use the default folder.
 -o, --show-secret	Shows the text. This will return a successful exit
 			status even if the clipboard failed.
 --html	Puts text to the generated html to 
@@ -96,11 +93,11 @@ List all encrypted files:
 ${0##*/} list
 
 Encrypt a text:
-${0##*/} add --category=\"username\" \"website.pass\" 
+${0##*/} add \"username/website.pass\" 
 
 Decrypts the password and put it into the system clipboard and clears for a 
 period of time:
-${0##*/} open --clear --category=\"username\" \"website.pass\"
+${0##*/} open --clear  \"username/website.pass\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
@@ -167,7 +164,7 @@ showPath() { changeDir && pwd && exit ; }
 
 listdb() {
 	changeDir
-	{ [ -d "$(pwd)/$iD" ] && cd "$iD" ; } || { echo "$iD does not exist" 1>&"$outputTo" ; exit 1 ; }
+	{ [ -d "$(pwd)/$inputFile" ] && cd "$inputFile" ; } || { echo "$inputFile does not exist" 1>&"$outputTo" ; exit 1 ; }
 	printf "%s Home Directory\n%s\n" "${0##*/}" "$(pwd)"
 	if [ "$(find ./ | wc -l)" -eq 1 ] ; then
 		$message "There are no encrypted files added yet" 1>&"$outputTo"
@@ -180,13 +177,11 @@ listdb() {
 
 checkFileName() {
 	# Thanks to pass for this line for detecting sneaky paths
-	[ -z "$fileName" ] && echo "There is not input file" 1>&"$outputTo" && exit 1
-	[ -n "$iD" ] && echo "$iD" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
+	[ -z "$inputFile" ] && echo "There is not input file" 1>&"$outputTo" && exit 1
+	[ -n "$inputFile" ] && echo "$inputFile" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
 		echo "You've attempted to escape the home directory of the script." 1>&"$outputTo" && exit 1
-	[ -z "$iD" ] && iD="default"
-	case $fileName in */*) echo "/'s are not accepted in file names." 1>&"$outputTo" ; exit 1 ;; esac
-	inputFile="$PPASSDB_HOME/$iD/$fileName"
-	[ "$operation" = "encrypt" ] && [ ! -d "$iD" ] && mkdir -p "$PPASSDB_HOME/$iD"
+	inputFile="$PPASSDB_HOME/$inputFile"
+	[ "$operation" = "encrypt" ] && [ ! -d "${inputFile%/*}" ] && mkdir -p "${inputFile%/*}"
 	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&"$outputTo" && exit 1 ; }
 }
 
@@ -231,7 +226,7 @@ makeHTML() {
 		cat << EOF
 <html>
 	<head>
-	<title> $fileName | $iD | ${0##*/} </title>
+	<title> ${inputFile#"$PPASSDB_HOME/"} | ${0##*/} </title>
 	<script>
 		function copyToClipboard() { 
 			navigator.clipboard.writeText(\`$escapeText\`); 
@@ -312,7 +307,7 @@ encryption() {
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 	fi
 	if [ -n "$otpOption" ] ; then
-		validateOtp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" || echo "$fileName: OTP URL provided may be invalid" 1>&"$outputTo" 
+		validateOtp "$textToEncrypt" && echo "${inputFile%"$PPASSDB_HOME/"}: OTP URL Validated" 1>&"$outputTo" || echo "${inputFile%"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&"$outputTo" 
 	fi
 	# shellcheck disable=SC2086
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
@@ -331,19 +326,19 @@ validateOtp() {
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) $message "$fileName: Not a valid OTP auth URL" 1>&"$outputTo" ; return 1 ;;
+	*) $message "${inputFile%"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&"$outputTo" ; return 1 ;;
 	esac
 
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
-	*) [ "$otpType" = "hotp" ] && echo "$fileName: Not a valid HOTP URL. No counter provided." 1>&"$outputTo" && otpValidate=1
+	*) [ "$otpType" = "hotp" ] && echo "${inputFile%"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&"$outputTo" && otpValidate=1
 	;;
 	esac
 
 	case $1 in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
 	*)
-		echo "$fileName Invalid URL. No secret is provided" 1>&"$outputTo"
+		echo "${inputFile#"$PPASSDB_HOME/"} Invalid URL. No secret is provided" 1>&"$outputTo"
 		otpValidate=1
 	;;
 	esac
@@ -383,7 +378,7 @@ decryption() {
 	[ -n "$otpOption" ] && [ -z "$qrCodeOption" ] && { textToCopy=$(otpCode "$textToCopy") || exit $? ; }
 	if [ -n "$qrCodeOption" ] ; then
 		if [ -n "$otpOption" ] ; then
- 			validateOtp "$textToCopy" && echo "$fileName: OTP URL validated" 1>&2 || echo "$fileName: This QR code may not work on autheticator apps" 1>&2
+			validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 		fi
 		generateQrCode "$textToCopy" 
 	fi
@@ -435,13 +430,12 @@ while [ -n "$1" ] ; do
 	--char-type=*) typeOfChars=${1#*=} ;;
 	--notify) command -v notify-send > /dev/null && message="notify-send" ; shift ;;
 	--multi-line) multiLineOption=" " ; shift ;;
-	--category=*) iD=${1#*=} ; shift ;;
 	--recipient=*) recipient=${1#*=} ; shift ;;
 	--) shift ; break  ;;
-	*) { [ -z "$2" ] && fileName="$1" ; shift ; } || { echo "$1 is an unknown option" 1>&2 ; exit 1 ; } ;;
+	*) { [ -z "$2" ] && inputFile="$1" ; shift ; } || { echo "$1 is an unknown option" 1>&2 ; exit 1 ; } ;;
 	esac
 done
-[ -z "$fileName" ] && fileName="$1"
+[ -z "$inputFile" ] && inputFile="$1"
 checkOptions
 
 case "$operation" in
