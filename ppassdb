@@ -164,7 +164,12 @@ showPath() { changeDir && pwd && exit ; }
 
 listdb() {
 	changeDir
-	{ [ -d "$(pwd)/$inputFile" ] && cd "$inputFile" ; } || { echo "$inputFile does not exist" 1>&"$outputTo" ; exit 1 ; }
+	if [ -e "$(pwd)/$inputFile" ] ; then
+		{ [ -d "$(pwd)/$inputFile" ] && cd "$inputFile" ; } || { [ -f "$(pwd)/$inputFile" ] && echo "$inputFile is a file" 1>&"$outputTo" && exit 1 ; }
+	else
+ 		echo "$inputFile does not exist" 1>&"$outputTo"
+		exit 1
+	fi
 	printf "%s Home Directory\n%s\n" "${0##*/}" "$(pwd)"
 	if [ "$(find ./ | wc -l)" -eq 1 ] ; then
 		$message "There are no encrypted files added yet" 1>&"$outputTo"
@@ -176,8 +181,8 @@ listdb() {
 }
 
 checkFileName() {
-	# Thanks to pass for this line for detecting sneaky paths
 	[ -z "$inputFile" ] && echo "There is not input file" 1>&"$outputTo" && exit 1
+	# Thanks to pass for this line for detecting sneaky paths
 	[ -n "$inputFile" ] && echo "$inputFile" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
 		echo "You've attempted to escape the home directory of the script." 1>&"$outputTo" && exit 1
 	inputFile="$PPASSDB_HOME/$inputFile"
