@@ -37,9 +37,9 @@ Operations:
 help, --help	To shows this help message.
 add, insert	For adding and encrypting text files.
 open		For decrypting and opening an encrypted text file
-list, ls	Lists all the added encrypted text files. If --catergory=
-		is not specified, it will list all encrypted files
-		from all groups.
+list, ls	Lists all the added encrypted text files. If a sub
+		directory is not specified, it will list all 
+		encrypted files from all subdirectories.
 location, pwd	Outputs the path to where all the encrypted files
 		will be stored.
 
@@ -74,10 +74,10 @@ Specific to both open and add operations:
 -l, --clear		Clears the clipboard after a period of time.
 -o, --show-secret	Shows the text. This will return a successful exit
 			status even if the clipboard failed.
---html	Puts text to the generated html to 
-	copy it from the web browser.
---forget	Forgets password after an operation was performed
---otp	For decryption, it converts the OTP URL to OTP code. For
+--html			Puts text to the generated html to 
+			copy it from the web browser.
+--forget		Forgets password after an operation was performed
+--otp		For decryption, it converts the OTP URL to OTP code. For
 		encryption, it verifies and tell information about the
 		OTP URL to encrypt so to know whether the URL is valid
 		for code generation.
