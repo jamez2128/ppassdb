@@ -60,34 +60,16 @@ while [ -d "$prompt" ] ; do
 	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
 	prompt=$(pwd)
 	{ [ -n "$convertToOtpCode" ] && [ -z "$showAllOption" ] ; } && findName="*.otp" || findName="*"
-	unset removeDefault
-	unset topOption
-	if [ "$(pwd)" = "$ppassdbHOME" ]  ; then
-		[ -d "default" ] && removeDefault="/default/ d"
-		topOption="default/"
-	else topOption=".."
-	fi
-	findFormat=$(cat << EOF
-$(
-find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g; $removeDefault" | sort
-find . -maxdepth 1 -name "$findName" ! -type d | sed "s/.*\///g" | sort
-)
-EOF
-)
+	findFormat=$(find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g" | sort ; find . -maxdepth 1 -name "$findName" ! -type d | sed "s/.*\///g" | sort)
 	[ -n "$sortOption" ] && findFormat=$(echo "$findFormat" | sort)
-	dmenuFormat=$(cat << EOF
-$(
-echo "$topOption"
-echo "$findFormat"
-)
-EOF
-)
-	prompt="$(pwd)/$(printf "%s" "$dmenuFormat" | dmenu -p "${prompt#"$ppassdbHOME"}")" || exit 1
+	dmenuFormat=$([ ! "$prompt" = "$ppassdbHOME" ] && echo ".." ; echo "$findFormat")
+	[ "$prompt" = "$ppassdbHOME" ] && dmenuPromptMessage="" || dmenuPromptMessage="${prompt#"$ppassdbHOME/"}"
+	prompt="$(pwd)/$(printf "%s" "$dmenuFormat" | dmenu -p "$dmenuPromptMessage")" || exit 1
 done
 
 # Exit the script if it is not a file
 [ ! -f "$prompt" ] && exit 1
 
 # The decryption part
-PPASSDB_HOME="$(pwd)" "$scriptName" open --notify --clear $convertToOtpCode --category="." -- "${prompt##*/}" || 
+"$scriptName" open --notify --clear $convertToOtpCode -- "${prompt#"$ppassdbHOME/"}" || 
 { notify-send "Decryption failed" ; exit 1 ; }

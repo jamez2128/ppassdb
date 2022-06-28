@@ -75,7 +75,7 @@ Specific to both open and add operations:
 -o, --show-secret	Shows the text. This will return a successful exit
 			status even if the clipboard failed.
 --html	Puts text to the generated html to 
-		copy it from the web browser.
+	copy it from the web browser.
 --forget	Forgets password after an operation was performed
 --otp	For decryption, it converts the OTP URL to OTP code. For
 		encryption, it verifies and tell information about the
