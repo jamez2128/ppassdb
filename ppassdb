@@ -312,9 +312,7 @@ encryption() {
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 	fi
 	if [ -n "$otpOption" ] ; then
-		validateOtp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" 
-	else
-		echo "$fileName: OTP URL provided may be invalid" 1>&"$outputTo" 
+		validateOtp "$textToEncrypt" && echo "$fileName: OTP URL Validated" 1>&"$outputTo" || echo "$fileName: OTP URL provided may be invalid" 1>&"$outputTo" 
 	fi
 	# shellcheck disable=SC2086
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
