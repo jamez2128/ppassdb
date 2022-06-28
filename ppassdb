@@ -69,12 +69,6 @@ Specific for add only:
 --multi-line		Encrypts a multi-line text instead of a
 			single line.
 
-Specific for open only:
---qr-code	Encodes decrypted text to QR code. It is useful to scan
-		OTP URL's to authenticator apps on phones. If you are 
-		using it for OTP's, it is recommended to use
-		the --otp option to validate it.
-
 Specific to both open and add operations:
 -n, --no-clip	This option will not attempt to copy to clipboard.
 -l, --clear		Clears the clipboard after a period of time.
@@ -87,6 +81,10 @@ Specific to both open and add operations:
 		encryption, it verifies and tell information about the
 		OTP URL to encrypt so to know whether the URL is valid
 		for code generation.
+--qr-code	Encodes text to QR code. It is useful to scan
+		OTP URL's to authenticator apps on phones. If you are 
+		using it for OTP's, it is recommended to use
+		the --otp option to validate it.
 
 Examples:
 List all encrypted files:
@@ -311,15 +309,16 @@ encryption() {
 	else
 		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
 	fi
-	if [ -n "$otpOption" ] ; then
-		validateOtp "$textToEncrypt" && echo "${inputFile%"$PPASSDB_HOME/"}: OTP URL Validated" 1>&"$outputTo" || echo "${inputFile%"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&"$outputTo" 
-	fi
 	# shellcheck disable=SC2086
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
 	textToCopy="$textToEncrypt"
-	[ -z "$dontCopyOption" ] && [ -n "$generateOption" ] && [ -z "$htmlOption" ] && copyToClipboard
+	if [ -n "$otpOption" ] ; then
+		validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&"$outputTo" || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&"$outputTo" 
+	fi
+	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } && [ -z "$htmlOption" ] && copyToClipboard
 	[ -n "$htmlOption" ] && makeHTML
 	[ -n "$showSecretOption" ] && showSecret
+	[ -n "$qrCodeOption" ] && generateQrCode "$textToCopy"
 }
 
 generateQrCode() {
@@ -331,12 +330,12 @@ validateOtp() {
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) $message "${inputFile%"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&"$outputTo" ; return 1 ;;
+	*) $message "${inputFile#"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&"$outputTo" ; return 1 ;;
 	esac
 
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
-	*) [ "$otpType" = "hotp" ] && echo "${inputFile%"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&"$outputTo" && otpValidate=1
+	*) [ "$otpType" = "hotp" ] && echo "${inputFile#"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&"$outputTo" && otpValidate=1
 	;;
 	esac
 
@@ -380,17 +379,17 @@ decryption() {
 	checkFileName
 	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy=$($gnupg -d "$inputFile" 2>"$gpgOutput") || exit $?
-	[ -n "$otpOption" ] && [ -z "$qrCodeOption" ] && { textToCopy=$(otpCode "$textToCopy") || exit $? ; }
-	if [ -n "$qrCodeOption" ] ; then
-		if [ -n "$otpOption" ] ; then
-			validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
-		fi
-		generateQrCode "$textToCopy" 
+	if [ -n "$otpOption" ] && [ -z "$qrCodeOption" ]  ; then
+ 		textToCopy=$(otpCode "$textToCopy") || exit $?
+	elif [ -n "$qrCodeOption" ] && [ -n "$otpOption" ] ; then
+		validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
-	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && [ -z "$qrCodeOption" ]  && copyToClipboard
-	[ -n "$htmlOption" ] && [ -z "$qrCodeOption" ] && makeHTML
-	[ -n "$showSecretOption" ] && [ -z "$qrCodeOption" ] && showSecret
+	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && copyToClipboard
+	[ -n "$htmlOption" ] && makeHTML
+	[ -n "$showSecretOption" ] && showSecret
+	[ -n "$qrCodeOption" ] && generateQrCode "$textToCopy"
+
 }
 
 checkEnvVars() {
