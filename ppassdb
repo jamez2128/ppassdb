@@ -46,7 +46,6 @@ location, pwd	Outputs the path to where all the encrypted files
 Options:
 --notify		Pushes feedback messages to notifications
 			(Only works on Linux)
--q, --quiet, --silent	Supresses all errors and feedback messages
 
 Specific for add only:
 --image=\"</path/to/image.png>\"	Decodes QR Code and encrypts the text.
@@ -104,15 +103,15 @@ https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
 checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
-	{ echo "gnupg is not installed" 1>&"$outputTo" && exit 127 ; }
+	{ echo "gnupg is not installed" 1>&2 && exit 127 ; }
 	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
-		echo "oathtool is not installed. It is required to generate OTP codes." 1>&"$outputTo"
+		echo "oathtool is not installed. It is required to generate OTP codes." 1>&2
 		exit 127
 	fi
 	if [ -n "$qrCodeOption" ] ; then
 		case "$operation" in
-		encrypt) ! command -v zbarimg > /dev/null && { echo "zbarimg is not installed. It is required to add OTP URL's from QR codes " 1>&"$outputTo" ; exit 127  ; } ;;
-		decrypt) ! command -v qrencode > /dev/null && { echo "qrencode is not installed. It is required to generate QR codes." 1>&"$outputTo" ; exit 127 ; } ;;
+		encrypt) ! command -v zbarimg > /dev/null && { echo "zbarimg is not installed. It is required to add OTP URL's from QR codes " 1>&2 ; exit 127  ; } ;;
+		decrypt) ! command -v qrencode > /dev/null && { echo "qrencode is not installed. It is required to generate QR codes." 1>&2 ; exit 127 ; } ;;
 		esac
 	fi
 }
@@ -129,7 +128,7 @@ searchHome() {
 	xdgPath="$XDG_DATA_HOME"
 	
 	if [ -d "$androidPath/$dirName"  ] ; then
-		[ ! -w "$androidPath" ] && echo "You don't have write permissions in Termux" 1>&"$outputTo" && exit 1
+		[ ! -w "$androidPath" ] && echo "You don't have write permissions in Termux" 1>&2 && exit 1
 		PPASSDB_HOME="$androidPath/$dirName"
 	elif [ -d "$windowsPath/$dirName" ] ; then
 		PPASSDB_HOME="$windowsPath/$dirName"
@@ -156,21 +155,21 @@ defineHome() {
 	mkdir -p "$PPASSDB_HOME"
 }
 
-changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&"$outputTo" ;  exit 2 ; } ; }
+changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&2 ;  exit 2 ; } ; }
 
 showPath() { changeDir && pwd && exit ; }
 
 listdb() {
 	changeDir
 	if [ -e "$(pwd)/$inputFile" ] ; then
-		{ [ -d "$(pwd)/$inputFile" ] && cd "$inputFile" ; } || { [ -f "$(pwd)/$inputFile" ] && echo "$inputFile is a file" 1>&"$outputTo" && exit 1 ; }
+		{ [ -d "$(pwd)/$inputFile" ] && cd "$inputFile" ; } || { [ -f "$(pwd)/$inputFile" ] && echo "$inputFile is a file" 1>&2 && exit 1 ; }
 	else
- 		echo "$inputFile does not exist" 1>&"$outputTo"
+ 		echo "$inputFile does not exist" 1>&2
 		exit 1
 	fi
 	printf "%s Home Directory\n%s\n" "${0##*/}" "$(pwd)"
 	if [ "$(find ./ | wc -l)" -eq 1 ] ; then
-		$message "There are no encrypted files added yet" 1>&"$outputTo"
+		$message "There are no encrypted files added yet" 1>&2
 		exit 1
 	else
 		{ command -v "tree" > /dev/null && tree -aR ; } || ls -AR
@@ -179,19 +178,18 @@ listdb() {
 }
 
 checkFileName() {
-	[ -z "$inputFile" ] && echo "There is not input file" 1>&"$outputTo" && exit 1
+	[ -z "$inputFile" ] && echo "There is not input file" 1>&2 && exit 1
 	# Thanks to pass for this line for detecting sneaky paths
 	[ -n "$inputFile" ] && echo "$inputFile" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
-		echo "You've attempted to escape the home directory of the script." 1>&"$outputTo" && exit 1
+		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
 	inputFile="$PPASSDB_HOME/$inputFile"
 	[ "$operation" = "encrypt" ] && [ ! -d "${inputFile%/*}" ] && mkdir -p "${inputFile%/*}"
-	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&"$outputTo" && exit 1 ; }
+	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&2 && exit 1 ; }
 }
 
 checkOptions() {
 	{ [ -z "$recipient" ] && gpgEncryptOptions="-c --cipher-algo AES256" ; } || { gpgEncryptOptions="-e -r $recipient" ; }
 	[ -z "$message" ] && message="echo"
-	[ -n "$silentOption" ] && outputTo="/dev/null" || outputTo="2" ; 
 }
 
 checkOS() {
@@ -219,7 +217,7 @@ makeHTML() {
 		htmlPath="/storage/emulated/0/$fileNameOnly}"
 	elif [ "$oS" = "Android" ] ; then
 		unset htmlPath
-		echo "You don't have write permissions in Termux" 1>&"$outputTo"
+		echo "You don't have write permissions in Termux" 1>&2
 		[ -z "$showSecretOption" ] && exit 1
 	fi
 	[ -n "$htmlPath" ] && 
@@ -248,9 +246,9 @@ EOF
 		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$htmlPath" > /dev/null 2>&1 ;;
 		*) command -v open > /dev/null && open "$htmlPath" > /dev/null 2>&1 ;;
 		esac
-		echo "Your decrypted file is in file://$htmlPath" 1>&"$outputTo"
-		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&"$outputTo"
-		echo "This file will be deleted in $deleteHTMLTime seconds" 1>&"$outputTo"
+		echo "Your decrypted file is in file://$htmlPath" 1>&2
+		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&2
+		echo "This file will be deleted in $deleteHTMLTime seconds" 1>&2
 		sleep "$deleteHTMLTime" && [ -f "$htmlPath" ] && rm "$htmlPath" &
 	fi
 }
@@ -258,7 +256,7 @@ EOF
 showSecret() { echo "$textToCopy" ; }
 
 clearClipboard() {
-	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds" 1>&"$outputTo"
+	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds" 1>&2
 	sleep "$clearClipboardTime" && head /dev/null | $clipboard &
 }
 
@@ -274,11 +272,11 @@ copyToClipboard() {
 		;;
 	esac
 	if [ -n "$clipboard" ] ; then
-		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" 1>&"$outputTo"
+		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" 1>&2
 		[ -n "$clearClipOption" ] && clearClipboard
 		
 	else
-		$message "Could not find any clipboards" 1>&"$outputTo"
+		$message "Could not find any clipboards" 1>&2
 		[ -z "$showSecretOption" ] && [ -z "$htmlOption" ] && exit 127
 	fi
 }
@@ -287,14 +285,14 @@ generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/u
 
 oneLinerText() {
 	stty -echo
-	printf "Enter text to encrypt: " 1>&"$outputTo" && read -r textToEncrypt ; echo
-	printf "Enter the same text again: " 1>&"$outputTo" && read -r confirmText ; echo	
+	printf "Enter text to encrypt: " 1>&2 && read -r textToEncrypt ; echo
+	printf "Enter the same text again: " 1>&2 && read -r confirmText ; echo	
 	stty echo
-	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" 1>&"$outputTo" && exit 1 ; }
+	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" 1>&2 && exit 1 ; }
 }
 
 multiLinerText() {
-	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"  1>&"$outputTo"
+	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"  1>&2
 	textToEncrypt=$(cat)
 }
 
@@ -311,7 +309,7 @@ encryption() {
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
 	textToCopy="$textToEncrypt"
 	if [ -n "$otpOption" ] ; then
-		validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&"$outputTo" || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&"$outputTo" 
+		validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
 	fi
 	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } && [ -z "$htmlOption" ] && copyToClipboard
 	[ -n "$htmlOption" ] && makeHTML
@@ -328,19 +326,19 @@ validateOtp() {
 
 	case $1 in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
-	*) $message "${inputFile#"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&"$outputTo" ; return 1 ;;
+	*) $message "${inputFile#"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&2 ; return 1 ;;
 	esac
 
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
-	*) [ "$otpType" = "hotp" ] && echo "${inputFile#"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&"$outputTo" && otpValidate=1
+	*) [ "$otpType" = "hotp" ] && echo "${inputFile#"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&2 && otpValidate=1
 	;;
 	esac
 
 	case $1 in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
 	*)
-		echo "${inputFile#"$PPASSDB_HOME/"} Invalid URL. No secret is provided" 1>&"$outputTo"
+		echo "${inputFile#"$PPASSDB_HOME/"} Invalid URL. No secret is provided" 1>&2
 		otpValidate=1
 	;;
 	esac
@@ -362,7 +360,7 @@ validateOtp() {
 
 	case $otpType in
 	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
-	hotp) $message "Only TOTP URL's are supported at this time." 1>&"$outputTo" ;;
+	hotp) $message "Only TOTP URL's are supported at this time." 1>&2 ;;
 	esac
 	return $otpValidate
 }
@@ -376,11 +374,7 @@ decryption() {
 	checkDependecies
 	checkFileName
 	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
-	if [ -n "$silentOption" ] ; then
-		textToCopy=$($gnupg -d "$inputFile" 2>/dev/null) || exit $?
-	else
-		textToCopy=$($gnupg -d "$inputFile") || exit $?
-	fi
+	textToCopy=$($gnupg -d "$inputFile") || exit $?
 	if [ -n "$otpOption" ] && [ -z "$qrCodeOption" ]  ; then
  		textToCopy=$(otpCode "$textToCopy") || exit $?
 	elif [ -n "$qrCodeOption" ] && [ -n "$otpOption" ] ; then
@@ -422,7 +416,6 @@ shift
 
 while [ -n "$1" ] ; do
 	case "$1" in
-	-q|--quiet|--silent) silentOption=" " ; shift  ;;
 	--image=*) imageSource=${1#*=}  ; shift ;;
 	--qr-code) qrCodeOption=" " ; shift ;;
 	--otp) otpOption=" " ; shift ;;
