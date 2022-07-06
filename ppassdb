@@ -220,18 +220,20 @@ makeHTML() {
 	<head>
 	<title> ${inputFile#"$PPASSDB_HOME/"} | ${0##*/} </title>
 	<script>
+		var isClear = document.getElementById("clearClipBox");
 		function copyToClipboard() { 
 			navigator.clipboard.writeText(\`$escapeText\`); 
 		}
-		
 		function clearClipboard() {
-
+			navigator.clipboard.writeText(""); 
 		}
 	</script>
 </head>
 <body>
-	<p> Click <button onclick=copyToClipboard()> 
-		Copy </button> to put decrypted text to Clipboard 
+	<p>
+		<button onclick=copyToClipboard()>Copy to Clipboard</button>
+		<br>
+		<button onclick=clearClipboard()>Clear Clipboard </button>
 	</p>
 </body>
 </html>
