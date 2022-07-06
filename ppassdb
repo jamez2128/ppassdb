@@ -104,16 +104,9 @@ checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" 1>&2 && exit 127 ; }
-	if [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; then
-		echo "oathtool is not installed. It is required to generate OTP codes." 1>&2
-		exit 127
-	fi
-	if [ -n "$qrCodeOption" ] ; then
-		case "$operation" in
-		encrypt) ! command -v zbarimg > /dev/null && { echo "zbarimg is not installed. It is required to add OTP URL's from QR codes " 1>&2 ; exit 127  ; } ;;
-		decrypt) ! command -v qrencode > /dev/null && { echo "qrencode is not installed. It is required to generate QR codes." 1>&2 ; exit 127 ; } ;;
-		esac
-	fi
+	{ [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; } && { echo "oathtool is not installed. It is required to generate OTP codes." 1>&2 ; exit 127 ; }
+	{ [ -n "$imageSource" ] && ! command -v zbarimg > /dev/null ; } && { echo "zbarimg is not installed. It is required to add secrets from QR codes" 1>&2 ; exit 127 ; }
+	{ [ -n "$qrCodeOption" ] && ! command -v qrencode > /dev/null ; } && { echo "qrencode is not installed. It is required to generate QR codes from secrets." 1>&2 ; exit 127 ; }
 }
 
 searchHome() {
@@ -178,7 +171,7 @@ listdb() {
 }
 
 checkFileName() {
-	[ -z "$inputFile" ] && echo "There is not input file" 1>&2 && exit 1
+	[ -z "$inputFile" ] && echo "There is no input file" 1>&2 && exit 1
 	# Thanks to pass for this line for detecting sneaky paths
 	[ -n "$inputFile" ] && echo "$inputFile" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
 		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
@@ -229,6 +222,10 @@ makeHTML() {
 	<script>
 		function copyToClipboard() { 
 			navigator.clipboard.writeText(\`$escapeText\`); 
+		}
+		
+		function clearClipboard() {
+
 		}
 	</script>
 </head>
@@ -329,6 +326,12 @@ validateOtp() {
 	*) $message "${inputFile#"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&2 ; return 1 ;;
 	esac
 
+	case $otpType in
+	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
+	hotp) $message "HOTP URL's are not supported at this time." 1>&2 ;;
+	*) $message "Either $otpType OTP type is unsupported or invalid" 1>&2 ; otpValidate=1 ;;
+	esac
+
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
 	*) [ "$otpType" = "hotp" ] && echo "${inputFile#"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&2 && otpValidate=1
@@ -337,10 +340,7 @@ validateOtp() {
 
 	case $1 in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
-	*)
-		echo "${inputFile#"$PPASSDB_HOME/"} Invalid URL. No secret is provided" 1>&2
-		otpValidate=1
-	;;
+	*) echo "${inputFile#"$PPASSDB_HOME/"} Invalid URL. No secret is provided" 1>&2 ; otpValidate=1 ;;
 	esac
 	
 	case $1 in 
@@ -358,10 +358,6 @@ validateOtp() {
 	*) otpPeriod=30  ;;
 	esac
 
-	case $otpType in
-	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
-	hotp) $message "Only TOTP URL's are supported at this time." 1>&2 ;;
-	esac
 	return $otpValidate
 }
 
