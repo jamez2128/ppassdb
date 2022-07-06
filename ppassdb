@@ -426,7 +426,7 @@ while [ -n "$1" ] ; do
 	-f|--forget) forgetImmediatelyOption=" " ; shift ;;
 	-g|--generate) generateOption=" " ; shift ;;
 	--char-length=*) numberOfChars=$(printf "%i" "${1#*=}") || exit $? ; shift ;;
-	--char-type=*) typeOfChars=${1#*=} ;;
+	--char-type=*) typeOfChars=${1#*=} ; shift ;;
 	--notify) command -v notify-send > /dev/null && message="notify-send" ; shift ;;
 	--multi-line) multiLineOption=" " ; shift ;;
 	--recipient=*) recipient=${1#*=} ; shift ;;
