@@ -34,27 +34,33 @@ helpPage() {
 	usage
 	echo "
 Operations:
-help, --help	To shows this help message.
-add, insert	For adding and encrypting text files.
-open		For decrypting and opening an encrypted text file
-list, ls	Lists all the added encrypted text files. If a sub
-		directory is not specified, it will list all 
-		encrypted files from all subdirectories.
-location, pwd	Outputs the path to where all the encrypted files
-		will be stored.
+
+help, --help				To shows this help message.
+add, insert				For adding and encrypting text files.
+open					For decrypting and opening an encrypted
+					text file.
+list, ls				Lists all the added encrypted text
+					files.If a sub directory is not
+					specified, it will list all encrypted
+					files from all subdirectories.
+location, pwd				Outputs the path to where all the
+					encrypted files will be stored.
 
 Options:
---notify		Pushes feedback messages to notifications
-			(Only works on Linux)
+--notify				Pushes feedback messages to
+					notifications. (Only works on Linux)
 
 Specific for add only:
---image=\"</path/to/image.png>\"	Decodes QR Code and encrypts the text.
-					If it is an OTP. It is highly recommended 
-					to specify --otp to validate it when
-					encrypting.
---generate		Auto generates a random string and encrypts it.
---char-length=<NUMBER>	Specify the number of characters to randomly generate.
---char-type=<STRING>	Specify the type of characters to randomly generate.
+--image=\"</path/to/image.png>\"		Decodes QR Code and encrypts the text.
+					If it is an OTP. It is highly
+					recommended to specify --otp to
+					validate it when encrypting.
+--generate				Auto generates a random string and
+					encrypts it.
+--char-length=<NUMBER>			Specify the number of characters to
+					randomly generate.
+--char-type=<STRING>			Specify the type of characters to
+					randomly generate.
 	[:graph:] - All printable characters, except whitespace
 	[:alnum:] - All letters and numbers
 	[:alpha:] - Letters only
@@ -62,39 +68,74 @@ Specific for add only:
 	[:upper:] - Small letters only 
 	[:digit:] - Numbers only
 	For more options, refer to the tr manual
---recipient=<GPG ID>	Encrypts it with a existing user ID name made 
-			with a key pair. Without this option, it will 
-			use symetric encryption instead.
---multi-line		Encrypts a multi-line text instead of a
-			single line.
+--recipient=<GPG ID>			Encrypts it with a existing user
+					ID name made 
+					with a key pair. Without this option,
+					it will use symetric encryption
+					instead.
+--multi-line				Encrypts a multi-line text instead
+					of a single line.
 
 Specific to both open and add operations:
--n, --no-clip	This option will not attempt to copy to clipboard.
--l, --clear		Clears the clipboard after a period of time.
--o, --show-secret	Shows the text. This will return a successful exit
-			status even if the clipboard failed.
---html			Puts text to the generated html to 
-			copy it from the web browser.
---forget		Forgets password after an operation was performed
---otp		For decryption, it converts the OTP URL to OTP code. For
-		encryption, it verifies and tell information about the
-		OTP URL to encrypt so to know whether the URL is valid
-		for code generation.
---qr-code	Encodes text to QR code. It is useful to scan
-		OTP URL's to authenticator apps on phones. If you are 
-		using it for OTP's, it is recommended to use
-		the --otp option to validate it.
+-n, --no-clip				This option will not attempt to
+					copy to clipboard.
+-l, --clear				Clears the clipboard after a period
+					of time.
+-o, --show-secret			Shows the text. This will return a
+					successful exit status even if the
+					clipboard failed.
+--html					Puts text to the generated html to 
+					copy it from the web browser.
+--forget				Forgets password after an operation
+					was performed
+--otp					For decryption, it converts the OTP
+					URL to OTP code. For encryption, it
+					verifies and tell information about the
+					OTP URL to encrypt so to know whether
+					the URL is valid for code generation.
+--qr-code				Encodes text to QR code. It is useful
+					to scan OTP URL's to authenticator
+					apps on phones. If you are using it for
+					OTP's, it is recommended to use the
+					--otp option to validate it.
 
 Examples:
+
+Shows the path to all the encrypted files:
+${0##*/} location
+
 List all encrypted files:
 ${0##*/} list
+
+List all encrypted files from a specific directory:
+${0##*/} list \"username\"
 
 Encrypt a text:
 ${0##*/} add \"username/website.pass\" 
 
+Generate a random password and encrypt it:
+${0##*/} add --generate \"username/website.pass\" 
+
+Generate a random password with specific options and encrypts it:
+${0##*/} add --generate --char-length=16 --char-type=\"[:graph:]\" \"username/website.pass\" 
+
 Decrypts the password and put it into the system clipboard and clears for a 
 period of time:
 ${0##*/} open --clear  \"username/website.pass\"
+
+Decrypts the password, show it and doesn't copy to system clipboard:
+${0##*/} open --no-clip --show-secret  \"username/website.pass\"
+
+Decodes a QR code and encrypts it (Typically used in 2FA OTP):
+${0##*/} add --image=\"/path/to/qr/code.png\" \"username/website.otp\"
+
+Decrypts the password and turns the OTP URL to a code and clears the
+clipboard for the period of time:
+${0##*/} open --otp --clear \"username/website.otp\"
+
+Decrypts the password and encodes OTP URL back to QR code
+so it can be scanned by authenticators apps:
+${0##*/} open --no-clip --qr-code \"username/website.otp\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
