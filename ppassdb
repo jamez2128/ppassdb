@@ -369,12 +369,6 @@ validateOtp() {
 	*) $message "${inputFile#"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&2 ; return 1 ;;
 	esac
 
-	case $otpType in
-	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
-	hotp) $message "HOTP URL's are not supported at this time." 1>&2 ;;
-	*) $message "Either $otpType OTP type is unsupported or invalid" 1>&2 ; otpValidate=1 ;;
-	esac
-
 	case $1 in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
 	*) [ "$otpType" = "hotp" ] && echo "${inputFile#"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&2 && otpValidate=1
@@ -399,6 +393,12 @@ validateOtp() {
 	case $1 in
 	*period=*) otpPeriod=${1#*period=} otpPeriod=${otpPeriod%%&*} ;;
 	*) otpPeriod=30  ;;
+	esac
+
+	case $otpType in
+	totp) oathtoolArgs="--totp=$otpAlgorithm --time-step-size=$otpPeriod"  ;;
+	hotp) $message "HOTP URL's are not supported at this time." 1>&2 ;;
+	*) $message "Either $otpType OTP type is unsupported or invalid" 1>&2 ; otpValidate=1 ;;
 	esac
 
 	return $otpValidate
