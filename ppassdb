@@ -26,12 +26,12 @@ defaultTypeOfChars="[:graph:]"
 
 #==========================================================================#
 
-usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" 1>&2 ; }
+_usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" 1>&2 ; }
 
-noOperation() { usage ; echo "Type \"${0##*/} --help\" for more info" 1>&2 ; }
+_noOperation() { _usage ; echo "Type \"${0##*/} --help\" for more info" 1>&2 ; }
 
-helpPage() {
-	usage
+_help() {
+	_usage
 	echo "
 Operations:
 
@@ -141,7 +141,7 @@ For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
 }
 
-checkDependecies() {
+_checkDependecies() {
 	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" 1>&2 && exit 127 ; }
@@ -150,7 +150,7 @@ checkDependecies() {
 	{ [ -n "$qrCodeOption" ] && ! command -v qrencode > /dev/null ; } && { echo "qrencode is not installed. It is required to generate QR codes from secrets." 1>&2 ; exit 127 ; }
 }
 
-searchHome() {
+_searchHome() {
 	dirName="${0##*/}"
 	androidPath="/storage/emulated/0"
 	# This line is possible thanks to this Reddit thread and especially this comment
@@ -171,11 +171,11 @@ searchHome() {
 	elif [ -z "$XDG_DATA_HOME" ] && [ -d "$gnuLinuxPath/$dirName" ] ; then
 		PPASSDB_HOME="$gnuLinuxPath/$dirName"
 	elif [ -d "$xdgPath/$dirName" ] ; then PPASSDB_HOME="$xdgPath/$dirName"
-	else defineHome
+	else _defineHome
 	fi
 }
 
-defineHome() {
+_defineHome() {
 	if [ -d "$androidPath" ] ; then PPASSDB_HOME="$androidPath/$dirName"
 	elif [ -d "$windowsPath" ] ; then PPASSDB_HOME="$windowsPath/$dirName"
 	elif [ -d "$macPath" ] ; then PPASSDB_HOME="$macPath/$dirName"
@@ -189,11 +189,11 @@ defineHome() {
 	mkdir -p "$PPASSDB_HOME"
 }
 
-changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&2 ;  exit 2 ; } ; }
+_changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&2 ;  exit 2 ; } ; }
 
-showPath() { changeDir && pwd && exit ; }
+_showPath() { _changeDir && pwd && exit ; }
 
-listdb() {
+_listdb() {
 	changeDir
 	if [ -e "$(pwd)/$inputFile" ] ; then
 		{ [ -d "$(pwd)/$inputFile" ] && cd "$inputFile" ; } || { [ -f "$(pwd)/$inputFile" ] && echo "$inputFile is a file" 1>&2 && exit 1 ; }
@@ -211,7 +211,7 @@ listdb() {
 	
 }
 
-checkFileName() {
+_checkFileName() {
 	[ -z "$inputFile" ] && echo "There is no input file" 1>&2 && exit 1
 	# Thanks to pass for this line for detecting sneaky paths
 	[ -n "$inputFile" ] && echo "$inputFile" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
@@ -221,12 +221,12 @@ checkFileName() {
 	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&2 && exit 1 ; }
 }
 
-checkOptions() {
+_checkOptions() {
 	{ [ -z "$recipient" ] && gpgEncryptOptions="-c --cipher-algo AES256" ; } || { gpgEncryptOptions="-e -r $recipient" ; }
 	[ -z "$message" ] && message="echo"
 }
 
-checkOS() {
+_checkOS() {
 	msysCDrive="/c"
 	wslCDrive="/mnt/c"
 	if [ -d "$msysCDrive/Windows" ] || [ -d "$wslCDrive/Windows" ] ; then
@@ -243,7 +243,7 @@ checkOS() {
 
 #A workaround if the script failed to take care of the clipboard
 #Good Alternative if you don't wanna use the -s option
-makeHTML() {
+_makeHTML() {
 	escapeText=$(printf "%s" "$textToCopy" | sed 's/[\\`]/\\&/g')
 	htmlPath=$(mktemp -u).html
 	fileNameOnly=${htmlPath##*/}
@@ -293,14 +293,14 @@ EOF
 	fi
 }
 
-showSecret() { echo "$textToCopy" ; }
+_showSecret() { echo "$textToCopy" ; }
 
-clearClipboard() {
+_clearClipboard() {
 	[ -n "$clipboard" ] && $message "Clearing the clipboard in $clearClipboardTime seconds" 1>&2
 	sleep "$clearClipboardTime" && head /dev/null | $clipboard &
 }
 
-copyToClipboard() {
+_copyToClipboard() {
 # Clipboards by OS'
 	case $oS in
 	"Windows") clipboard="clip.exe" ;;	
@@ -313,7 +313,7 @@ copyToClipboard() {
 	esac
 	if [ -n "$clipboard" ] ; then
 		printf "%s" "$textToCopy" | $clipboard && $message "Copied to Clipboard sucessfully" 1>&2
-		[ -n "$clearClipOption" ] && clearClipboard
+		[ -n "$clearClipOption" ] && _clearClipboard
 		
 	else
 		$message "Could not find any clipboards" 1>&2
@@ -321,9 +321,9 @@ copyToClipboard() {
 	fi
 }
 
-generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/urandom 2>/dev/null | head -c "$numberOfChars") ; }
+_generateRandomText() { textToEncrypt=$(LC_CTYPE=C tr -dc "$typeOfChars" < /dev/urandom 2>/dev/null | head -c "$numberOfChars") ; }
 
-oneLinerText() {
+_oneLinerText() {
 	stty -echo
 	printf "Enter text to encrypt: " 1>&2 && read -r textToEncrypt ; echo
 	printf "Enter the same text again: " 1>&2 && read -r confirmText ; echo	
@@ -331,37 +331,37 @@ oneLinerText() {
 	[ "$textToEncrypt" = "$confirmText" ] || { echo "Texts do not match" 1>&2 && exit 1 ; }
 }
 
-multiLinerText() {
+_multiLinerText() {
 	echo "Type or paste the text you want to encrypt. Press Enter and Ctrl+D when done:"  1>&2
 	textToEncrypt=$(cat)
 }
 
-encryption() {
-	checkDependecies
-	checkFileName
-	if [ -n "$generateOption" ] ; then generateRandomText
+_encryption() {
+	_checkDependecies
+	_checkFileName
+	if [ -n "$generateOption" ] ; then _generateRandomText
 	elif [ -n "$imageSource" ] ; then
 		[ -f "$imageSource" ] && { textToEncrypt=$(zbarimg -q --raw "$imageSource") || exit $? ; }
 	else
-		{ [ -n "$multiLineOption" ] && multiLinerText ; } || oneLinerText
+		{ [ -n "$multiLineOption" ] && _multiLinerText ; } || _oneLinerText
 	fi
 	# shellcheck disable=SC2086
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
 	textToCopy="$textToEncrypt"
 	if [ -n "$otpOption" ] ; then
-		validateOtp "$(echo "$textToCopy" | head -n 1 )" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
+		_validateOtp "$(echo "$textToCopy" | head -n 1 )" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
 	fi
-	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } && [ -z "$htmlOption" ] && copyToClipboard
-	[ -n "$htmlOption" ] && makeHTML
-	[ -n "$showSecretOption" ] && showSecret
-	[ -n "$qrCodeOption" ] && generateQrCode "$textToCopy"
+	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } && [ -z "$htmlOption" ] && _copyToClipboard
+	[ -n "$htmlOption" ] && _makeHTML
+	[ -n "$showSecretOption" ] && _showSecret
+	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 }
 
-generateQrCode() {
+_generateQrCode() {
 	qrencode -t UTF8 "$1"
 }
 
-validateOtp() {
+_validateOtp() {
 	otpValidate=0
 
 	case $1 in
@@ -404,32 +404,32 @@ validateOtp() {
 	return $otpValidate
 }
 
-otpCode() {
+_otpCode() {
 	# shellcheck disable=SC2086
-	validateOtp "$1" && oathtool -b $oathtoolArgs --digits=$otpDigits "$otpSecret" || exit $?
+	_validateOtp "$1" && oathtool -b $oathtoolArgs --digits=$otpDigits "$otpSecret" || exit $?
 }
 
-decryption() {
-	checkDependecies
-	checkFileName
+_decryption() {
+	_checkDependecies
+	_checkFileName
 	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy=$($gnupg -d "$inputFile") || exit $?
 	if [ -n "$otpOption" ] && [ -z "$qrCodeOption" ]  ; then
-		textToCopy=$(otpCode "$(echo "$textToCopy" | head -n 1)") || exit $?
+		textToCopy=$(_otpCode "$(echo "$textToCopy" | head -n 1)") || exit $?
 	elif [ -n "$qrCodeOption" ] && [ -n "$otpOption" ] ; then
-		validateOtp "$(echo "$textToCopy" | head -n 1)" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
+		_validateOtp "$(echo "$textToCopy" | head -n 1)" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
-	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && copyToClipboard
-	[ -n "$htmlOption" ] && makeHTML
+	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && _copyToClipboard
+	[ -n "$htmlOption" ] && _makeHTML
 	[ -n "$showSecretOption" ] && showSecret
-	[ -n "$qrCodeOption" ] && generateQrCode "$textToCopy"
+	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 
 }
 
-checkEnvVars() {
+_checkEnvVars() {
 	if [ -n "$PPASSDB_HOME" ] ; then [ ! -d "$PPASSDB_HOME" ] && mkdir -p "$PPASSDB_HOME"
-	else searchHome
+	else _searchHome
 	fi
 	{ [ -n "$PPASSDB_CLEAR_TIME" ] && clearClipboardTime=$(printf "%i" "$PPASSDB_CLEAR_TIME") ; } || clearClipboardTime="$defaultClearClipboardTime"
 	{ [ -n "$PPASSDB_DELETE_HTML_TIME" ] && deleteHTMLTime="$PPASSDB_DELETE_HTML_TIME" ; } || deleteHTMLTime="$defaultDeleteHTMLTime"
@@ -439,17 +439,17 @@ checkEnvVars() {
 }
 
 # Start of the script
-[ $# -eq 0 ] && noOperation && exit 1
-checkOS
-checkEnvVars
+[ $# -eq 0 ] && _noOperation && exit 1
+_checkOS
+_checkEnvVars
 
 case "$1" in
-	--help|help) helpPage 2>&1 ; exit ;;
+	--help|help) _help 2>&1 ; exit ;;
 	add|insert) operation="encrypt";;
 	list|ls) operation="list";;
 	location|pwd) operation="path" ;;
 	open) operation="decrypt" ;;
-	*) echo "No operation specified" 1>&2 ; noOperation ; exit 1;;
+	*) echo "No operation specified" 1>&2 ; _noOperation ; exit 1;;
 esac
 shift
 
@@ -474,12 +474,12 @@ while [ -n "$1" ] ; do
 	esac
 done
 [ -z "$inputFile" ] && inputFile="$1"
-checkOptions
+_checkOptions
 
 case "$operation" in
-decrypt) decryption ;;
-encrypt) encryption "$gpgEncryptOptions" ;;
-list) listdb ;;
-path) showPath ;;
+decrypt) _decryption ;;
+encrypt) _encryption "$gpgEncryptOptions" ;;
+list) _listdb ;;
+path) _showPath ;;
 esac
 exit 0
