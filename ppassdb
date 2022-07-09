@@ -349,7 +349,7 @@ _encryption() {
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
 	textToCopy="$textToEncrypt"
 	if [ -n "$otpOption" ] ; then
-		_validateOtp "$(echo "$textToCopy" | head -n 1 )" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
+		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
 	fi
 	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } && [ -z "$htmlOption" ] && _copyToClipboard
 	[ -n "$htmlOption" ] && _makeHTML
@@ -362,35 +362,36 @@ _generateQrCode() {
 }
 
 _validateOtp() {
+	otpURL=$(echo "$1" | head -n 1)
 	otpValidate=0
 
-	case $1 in
+	case "$otpURL" in
 	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
 	*) $message "${inputFile#"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&2 ; return 1 ;;
 	esac
 
-	case $1 in
+	case "$otpURL" in
 	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
 	*) [ "$otpType" = "hotp" ] && echo "${inputFile#"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&2 && otpValidate=1
 	;;
 	esac
 
-	case $1 in
+	case "$otpURL" in
 	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
 	*) echo "${inputFile#"$PPASSDB_HOME/"} Invalid URL. No secret is provided" 1>&2 ; otpValidate=1 ;;
 	esac
 	
-	case $1 in 
+	case "$otpURL" in 
 	*algorithm=*) otpAlgorithm=${1#*algorithm=} otpAlgorithm=${otpAlgorithm%%&*} ;;
 	*) otpAlgorithm="SHA1" ;;
 	esac
 	
-	case $1 in 
+	case "$otpURL" in 
 	*digits=*) otpDigits=${1#*digits=} otpDigits=${otpDigits%%&*} ;;
 	*) otpDigits=6 ;;
 	esac
 	
-	case $1 in
+	case "$otpURL" in
 	*period=*) otpPeriod=${1#*period=} otpPeriod=${otpPeriod%%&*} ;;
 	*) otpPeriod=30  ;;
 	esac
@@ -417,7 +418,7 @@ _decryption() {
 	if [ -n "$otpOption" ] && [ -z "$qrCodeOption" ]  ; then
 		textToCopy=$(_otpCode "$(echo "$textToCopy" | head -n 1)") || exit $?
 	elif [ -n "$qrCodeOption" ] && [ -n "$otpOption" ] ; then
-		_validateOtp "$(echo "$textToCopy" | head -n 1)" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
+		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
 	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && _copyToClipboard
