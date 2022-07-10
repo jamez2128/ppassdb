@@ -33,12 +33,7 @@ devs.
 		- [Usage](#Usage-ppassdb)
 		- [Operations](#Operations-ppassdb)
 		- [Options](#Options-ppassdb)
-			- [Specific for `-E` only](#e-only-ppassdb)
-			- [Specific to both `-D` and `-E`](#d-and-e-ppassdb)
 		- [Examples](#Examples)
-			- [Lists all encrypted file](#example-1-ppassdb)
-			- [Encrypt a text](#example-2-ppassdb)
-			- [Decrypts the password and put it into the system clipboard and clears for a period of time](#example-3-ppassdb)
 	- [dpassmenu](#dpassmenu-manual)
 		- [Usage](#Usage-dpassmenu)
 		- [Options](#Options-dpassmenu)
@@ -48,12 +43,14 @@ devs.
 	- [Changing Directory Locations](#change-directory) 
 
 ## Depedencies
-- `gpg`
+- `gnupg`
 - `oauthtool` (For OTP codes)
 
 ### Optional:
 - `tree`
 - `notify-send`
+- `zbar` (For decoding QR Codes)
+- `qrencode`(For generating QR Codes)
 
 ### <a name=gnu-linux></a> GNU/Linux:
 - `xclip` or `wl-copy`
@@ -135,7 +132,7 @@ ppassdb <operation> [options] <filename>
 #### <a name="Options-ppassdb"></a>Options
 - `-n`      Pushes feedback messages to notifications (Only works on Linux)
 
-##### <a name="e-only-ppassdb"></a>Specific for `-E` only:
+##### Specific for `-E` only:
 - `-g`       Auto generates a random string and encrypts it.
 - `-a` <NUMBER>	Specify the number of characters to randomly generate.
 - `-t` <STRING>	Specify the type of characters to randomly generate.
@@ -150,7 +147,7 @@ ppassdb <operation> [options] <filename>
 	Without this option, it will use symetric encryption instead.
 - `-m`	Encrypts a multi-line text instead of a single line.
 
-##### <a name="d-and-e-ppassdb"></a>Specific to both `-D` and `-E`:
+##### Specific to both `-D` and `-E`:
 - `-d`	This option will not attempt to copy to clipboard.
 - `-c`      Clears the clipboard after a period of time.
 - `-f` <FILENAME>     This will be the input file name. `/` are not allowed in this 
@@ -167,17 +164,17 @@ ppassdb <operation> [options] <filename>
 	for code generation.
 
 #### Examples
-##### <a name="example-1-ppassdb"></a> Lists all encrypted file:
+##### Lists all encrypted file:
 ```
 ppassdb -L
 ```
 
-##### <a name="example-2-ppassdb"></a>Encrypt a text:
+##### Encrypt a text:
 ```
 ppassdb -E -i "username" -f "website.pass" 
 ```
 
-##### <a name="example-3-ppassdb"></a>Decrypts the password and put it into the system clipboard and clears for a period of time:
+##### Decrypts the password and put it into the system clipboard and clears for a period of time:
 ```
 ppassdb -Dc -i "username" -f "website.pass"
 ```
