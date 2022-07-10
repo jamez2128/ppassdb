@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#===========================Configurations=================================#
+#========================Global Configurations===========================#
 
 defaultClearClipboardTime=15
 defaultDeleteHTMLTime=30
@@ -24,7 +24,7 @@ defaultTypeOfChars="[:graph:]"
 ## Uncomment to ask the password everytime after previous encryption
 #askPassEverytime=" "
 
-#==========================================================================#
+#========================================================================#
 
 _usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" 1>&2 ; }
 
