@@ -41,14 +41,15 @@ devs.
 	- [Priorities for searching existed directories](#search-directory) 
 	- [Priorities for initializing directories](#initialize-directory) 
 	- [Changing Directory Locations](#change-directory) 
+- [Environmental Variables](#environmental-variabkes)
 
 ## Depedencies
 - `gnupg`
-- `oauthtool` (For OTP codes)
 
 ### Optional:
 - `tree`
-- `notify-send`
+- `libnotify`
+- `oauthtool` (For OTP codes)
 - `zbar` (For decoding QR Codes)
 - `qrencode`(For generating QR Codes)
 
@@ -303,3 +304,13 @@ It is recommended to set the environmental variable so not it does need to check
 for directories everytime the script runs. You have to suffix an empty directory
 or the directory that has files already made by the script. If you plan to change it,
 make sure to move it to desired directory first before setting an environmental variable.
+
+## <a name=environmental-variables></a> Enviromental Variables
+Set these varibles for your configurations
+
+- `PPASSDB_HOME` Set the script path to where all the encrypted files are located
+- `PPASSDB_CLEAR_TIME` Set how long it waits in seconds before clearing the clipboard
+- `PPASSDB_DELETE_HTML_TIME` Set how long it waits in seconds before deleting the temporary HTML file
+- `PPASSDB_GENERATE_CHAR_TYPE` Set the default character when generating a random string when encrypting a file
+- `PPASSDB_GENERATE_CHAR_LENGTH` Set the default length when generating a random string when encrypting a file
+- `PPASSDB_RECIPIENT` Set the default GPG key when adding a file
