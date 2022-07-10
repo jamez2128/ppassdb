@@ -137,7 +137,7 @@ ppassdb <operation> [options] <filename>
 					notifications. (Only works on Linux)
 
 ##### Specific for `-E` only:
-- `--qr-code=\</path/to/image.png\>`		Decodes QR Code and encrypts the text.
+- `--qr-code=</path/to/image.png>`		Decodes QR Code and encrypts the text.
 					If it is an OTP. It is highly
 					recommended to specify --otp to
 					validate it when encrypting.
@@ -154,7 +154,7 @@ ppassdb <operation> [options] <filename>
 	- `[:upper:]` - Small letters only 
 	- `[:digit:]` - Numbers only
 	For more options, refer to the tr manual
-- `--recipient=\<GPG ID\>`			Encrypts it with a existing user
+- `--recipient=<GPG ID>`			Encrypts it with a existing user
 					ID name made 
 					with a key pair. Without this option,
 					it will use symetric encryption
