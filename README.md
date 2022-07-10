@@ -233,12 +233,12 @@ ppassdb add --qr-code="/path/to/qr/code.png" "username/website.otp"
 
 ##### Decrypts the password and turns the OTP URL to a code and clears the clipboard for the period of time:
 ```
-ppassdb open --otp --clear \"username/website.otp\"
+ppassdb open --otp --clear "username/website.otp"
 ```
 
 ##### Decrypts the password and encodes OTP URL back to QR code so it can be scanned by authenticators apps:
 ```
-ppassdb open --no-clip --show-qr-code \"username/website.otp\"
+ppassdb open --no-clip --show-qr-code "username/website.otp"
 ```
 
 ### <a name="dpassmenu-manual"></a>`dpassmenu`
