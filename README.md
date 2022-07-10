@@ -154,7 +154,7 @@ ppassdb <operation> [options] <filename>
 	- `[:upper:]` - Small letters only 
 	- `[:digit:]` - Numbers only
 	For more options, refer to the tr manual
-`--recipient=`\<GPG ID\>			Encrypts it with a existing user
+- `--recipient=`\<GPG ID\>			Encrypts it with a existing user
 					ID name made 
 					with a key pair. Without this option,
 					it will use symetric encryption
