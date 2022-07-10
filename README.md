@@ -251,11 +251,10 @@ dpassmenu [options]
 
 #### <a name="Options-dpassmenu"></a>Options
 - `--help`		To show this help message
-- `--otp`		Generate an OTP code instead of the
-		encrypted text. All files without the
-		.otp at the end are hidden unless
-		if --show-all is specified.
-- `--show-all`	Show all files even if otp is specified.
+- `--otp`			Generate of the an OTP code of the
+			encrypted text.
+- `--filter=<PATTERN>`	Filters files only with a certain 
+			pattern
 - `--sort`		Sort all files and folders together
 
 ##  <a name="directory-location"></a>Directory Location

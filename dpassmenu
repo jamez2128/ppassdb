@@ -8,13 +8,12 @@ echo "A simple dmenu script for ppassdb
 Usage: ${0##*/} [options]
 
 Options:
---help		To show this help message
---otp		Generate an OTP code instead of the
-		encrypted text. All files without the
-		.otp at the end are hidden unless
-		if --show-all is specified.
---show-all	Show all files even if otp is specified.
---sort		Sort all files and folders together
+--help			To show this help message
+--otp			Generate of the an OTP code of the
+			encrypted text.
+--filter=<PATTERN>	Filters files only with a certain 
+			pattern
+--sort			Sort all files and folders together
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md"
@@ -25,7 +24,7 @@ while [ -n "$1" ] ; do
 	case $1 in
 	--otp) convertToOtpCode="--otp";;
 	--sort) sortOption=" "  ;;
-	--show-all) showAllOption=" " ;;
+	--filter=*) filter="${1#*=}"  ;;
 	--help) helpPage ; exit ;;
 	esac
 	shift
@@ -59,7 +58,7 @@ prompt="$ppassdbHOME"
 while [ -d "$prompt" ] ; do
 	cd "$prompt" || { echo "Directory doesn't exist" ;  exit 2 ; }
 	prompt=$(pwd)
-	{ [ -n "$convertToOtpCode" ] && [ -z "$showAllOption" ] ; } && findName="*.otp" || findName="*"
+	[ -n "$filter" ] && findName="$filter" || findName="*"
 	findFormat=$(find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g" | sort ; find . -maxdepth 1 -name "$findName" ! -type d | sed "s/.*\///g" | sort)
 	[ -n "$sortOption" ] && findFormat=$(echo "$findFormat" | sort)
 	dmenuFormat=$([ ! "$prompt" = "$ppassdbHOME" ] && echo ".." ; echo "$findFormat")
