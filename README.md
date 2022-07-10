@@ -172,7 +172,7 @@ ppassdb <operation> [options] <filename>
 					clipboard failed.
 - `--html`					Puts text to the generated html to 
 					copy it from the web browser.
-- `--forget`				Forgets password after an operation
+- `-f`, `--forget`				Forgets password after an operation
 					was performed
 - `--otp`					For decryption, it converts the OTP
 					URL to OTP code. For encryption, it
