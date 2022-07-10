@@ -65,44 +65,45 @@ devs.
 
 ## Installation
 ### <a name=install-ppassdb></a> `ppassdb`:
+Step 1: Download the file by entering this command:
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/ppassdb
 ```
 
-Give execution permissions:
+Step 2: Give execution permissions:
 ```
 chmod +x ./ppassdb
 ```
 
-For system-wide installation, put the script to `/usr/local/bin` (Need root privileges in Linux):
+Step 3: For system-wide installation, put the script to `/usr/local/bin` (Need root privileges in Linux):
 ```
-cp ppassdb /usr/local/bin
+cp ./ppassdb /usr/local/bin
 ```
 ### <a name=install-dpassmenu></a>`dpassmenu`:
+Step 1: Download the file by entering this command:
 ```
 curl -LO  https://raw.githubusercontent.com/jamez2128/ppassdb/master/dpassmenu
 ```
 
-Give execution permissions:
+Step 2: Give execution permissions:
 ```
 chmod +x ./dpassmenu
 ```
-
-For installation, same thing above:
+Step 3: For system-wide installation, put the script to `/usr/local/bin` (Need root privileges in Linux):
 
 ```
-cp dpassmenu /usr/local/bin
+cp ./dpassmenu /usr/local/bin
 ```
 
 ## Uninstallation
 If you want to know where the script saves the files and you want to delete it, run this command:
 ```
-ppassdb -P
+ppassdb location
 ```
 If you think that it is safe to delete, run this command:
 ### <a name="remove-encrypted-files"></a> Remove all encrypted files:
 ```
-rm -r "$(ppassdb -P)"
+rm -r "$(ppassdb location)"
 ```
 ### <a name="uninstall-ppassdb"></a>Uninstall `ppassdb`:
 ```
@@ -120,48 +121,68 @@ ppassdb <operation> [options] <filename>
 ```
 
 #### <a name="Operations-ppassdb">Operations
-- `-h`, `--help`	To shows this help message
-- `-E`		For adding and encrypting text files.
-- `-D`		For decrypting text file.
-- `-L`		Lists all the added encrypted text files. If -i
-		is not specified, it will list all encrypted files
-		from all groups.
-- `-P`		Outputs the path to where all the encrypted
-		files will be stored.
+- `help`, `--help`				To shows this help message.
+- `add`, `insert`				For adding and encrypting text files.
+- `open`					For decrypting and opening an encrypted
+					text file.
+- `list`, `ls`				Lists all the added encrypted text
+					files.If a sub directory is not
+					specified, it will list all encrypted
+					files from all subdirectories.
+- `location`, `pwd`				Outputs the path to where all the
+					encrypted files will be stored.
 
 #### <a name="Options-ppassdb"></a>Options
-- `-n`      Pushes feedback messages to notifications (Only works on Linux)
+- `--notify`				Pushes feedback messages to
+					notifications. (Only works on Linux)
 
 ##### Specific for `-E` only:
-- `-g`       Auto generates a random string and encrypts it.
-- `-a` <NUMBER>	Specify the number of characters to randomly generate.
-- `-t` <STRING>	Specify the type of characters to randomly generate.
-	- `[:graph:]` - All printable characters, except whitespace
-	- `[:alnum:]` - All letters and numbers
-	- `[:alpha:]` - Letters only
-	- `[:lower:]` - Capital letters only
-	- `[:upper:]` - Small letters only 
-	- `[:digit:]` - Numbers only
-	- For more options, refer to the `tr` manual
-- `-r` <GPG-ID>	Encrypts it with a existing user ID name made with a key pair.
-	Without this option, it will use symetric encryption instead.
-- `-m`	Encrypts a multi-line text instead of a single line.
-
+- `--qr-code=`\</path/to/image.png\>		Decodes QR Code and encrypts the text.
+					If it is an OTP. It is highly
+					recommended to specify --otp to
+					validate it when encrypting.
+- `--generate`				Auto generates a random string and
+					encrypts it.
+- `--char-length=`\<NUMBER\>			Specify the number of characters to
+					randomly generate.
+- `--char-type=`\<STRING\>			Specify the type of characters to
+					randomly generate.
+	[:graph:] - All printable characters, except whitespace
+	[:alnum:] - All letters and numbers
+	[:alpha:] - Letters only
+	[:lower:] - Capital letters only
+	[:upper:] - Small letters only 
+	[:digit:] - Numbers only
+	For more options, refer to the tr manual
+`--recipient=`\<GPG ID\>			Encrypts it with a existing user
+					ID name made 
+					with a key pair. Without this option,
+					it will use symetric encryption
+					instead.
+- `--multi-line`				Encrypts a multi-line text instead
+					of a single line.
 ##### Specific to both `-D` and `-E`:
-- `-d`	This option will not attempt to copy to clipboard.
-- `-c`      Clears the clipboard after a period of time.
-- `-f` <FILENAME>     This will be the input file name. `/` are not allowed in this 
-        option and will be replaced with `_` if present.
-- `-i` <ID NAME>      An identifier to group encrypted files. This is optional and if 
-        this option is not called, it will use the default folder.
-- `-s`      Shows the text. This will return a successful exit status even if 
-        the clipboard failed.
-- `-j`      Puts text to the generated html to copy it from the web browser.
-- `-k`	Forgets password after an operation was performed
-- `-o`	For decryption, it converts the OTP URL to OTP code. For
-	encryption, it verifies and tell information about the
-	OTP URL to encrypt so to know whether the URL is valid
-	for code generation.
+- `-n`, `--no-clip`				This option will not attempt to
+					copy to clipboard.
+- `-l`, `--clear`				Clears the clipboard after a period
+					of time.
+- `-o`, `--show-secret`			Shows the text. This will return a
+					successful exit status even if the
+					clipboard failed.
+- `--html`					Puts text to the generated html to 
+					copy it from the web browser.
+- `--forget`				Forgets password after an operation
+					was performed
+- `--otp`					For decryption, it converts the OTP
+					URL to OTP code. For encryption, it
+					verifies and tell information about the
+					OTP URL to encrypt so to know whether
+					the URL is valid for code generation.
+- `--show-qr-code`				Encodes text to QR code. It is useful
+					to scan OTP URL's to authenticator
+					apps on phones. If you are using it for
+					OTP's, it is recommended to use the
+					--otp option to validate it.
 
 #### Examples
 ##### Lists all encrypted file:
