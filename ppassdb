@@ -198,7 +198,7 @@ _changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&2 ;
 _showPath() { _changeDir && pwd && exit ; }
 
 _listdb() {
-	changeDir
+	_changeDir
 	if [ -e "$(pwd)/$inputFile" ] ; then
 		{ [ -d "$(pwd)/$inputFile" ] && cd "$inputFile" ; } || { [ -f "$(pwd)/$inputFile" ] && echo "$inputFile is a file" 1>&2 && exit 1 ; }
 	else
