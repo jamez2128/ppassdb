@@ -51,7 +51,7 @@ Options:
 					notifications. (Only works on Linux)
 
 Specific for add only:
---image=\"</path/to/image.png>\"		Decodes QR Code and encrypts the text.
+--qr-code=\"</path/to/image.png>\"		Decodes QR Code and encrypts the text.
 					If it is an OTP. It is highly
 					recommended to specify --otp to
 					validate it when encrypting.
@@ -93,7 +93,7 @@ Specific to both open and add operations:
 					verifies and tell information about the
 					OTP URL to encrypt so to know whether
 					the URL is valid for code generation.
---qr-code				Encodes text to QR code. It is useful
+--show-qr-code				Encodes text to QR code. It is useful
 					to scan OTP URL's to authenticator
 					apps on phones. If you are using it for
 					OTP's, it is recommended to use the
@@ -127,7 +127,7 @@ Decrypts the password, show it and doesn't copy to system clipboard:
 ${0##*/} open --no-clip --show-secret  \"username/website.pass\"
 
 Decodes a QR code and encrypts it (Typically used in 2FA OTP):
-${0##*/} add --image=\"/path/to/qr/code.png\" \"username/website.otp\"
+${0##*/} add --qr-code=\"/path/to/qr/code.png\" \"username/website.otp\"
 
 Decrypts the password and turns the OTP URL to a code and clears the
 clipboard for the period of time:
@@ -135,7 +135,7 @@ ${0##*/} open --otp --clear \"username/website.otp\"
 
 Decrypts the password and encodes OTP URL back to QR code
 so it can be scanned by authenticators apps:
-${0##*/} open --no-clip --qr-code \"username/website.otp\"
+${0##*/} open --no-clip --show-qr-code \"username/website.otp\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
@@ -456,8 +456,8 @@ shift
 
 while [ -n "$1" ] ; do
 	case "$1" in
-	--image=*) imageSource=${1#*=}  ; shift ;;
-	--qr-code) qrCodeOption=" " ; shift ;;
+	--qr-code=*) imageSource=${1#*=}  ; shift ;;
+	--show-qr-code) qrCodeOption=" " ; shift ;;
 	--otp) otpOption=" " ; shift ;;
 	-n|--no-clip) dontCopyOption=" " ; shift ;;
 	-o|--show-secret) showSecretOption=" " ; shift ;;
