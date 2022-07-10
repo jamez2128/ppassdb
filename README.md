@@ -33,7 +33,7 @@ devs.
 		- [Usage](#Usage-ppassdb)
 		- [Operations](#Operations-ppassdb)
 		- [Options](#Options-ppassdb)
-		- [Examples](#Examples)
+		- [Examples](#ppassdb-examples)
 	- [dpassmenu](#dpassmenu-manual)
 		- [Usage](#Usage-dpassmenu)
 		- [Options](#Options-dpassmenu)
@@ -184,7 +184,7 @@ ppassdb <operation> [options] <filename>
 					OTP's, it is recommended to use the
 					--otp option to validate it.
 
-#### Examples
+#### <a name=ppassdb-examples></a> Examples
 ##### Shows the path to all the encrypted files:
 ```
 ppassdb location
@@ -232,12 +232,12 @@ ppassdb add --qr-code="/path/to/qr/code.png" "username/website.otp"
 
 ##### Decrypts the password and turns the OTP URL to a code and clears the clipboard for the period of time:
 ```
-ppassdb open --otp --clear "username/website.otp"
+ppassdb open --otp --clear \"username/website.otp\"
 ```
 
 ##### Decrypts the password and encodes OTP URL back to QR code so it can be scanned by authenticators apps:
 ```
-ppassdb open --no-clip --show-qr-code "username/website.otp"
+ppassdb open --no-clip --show-qr-code \"username/website.otp\"
 ```
 
 ### <a name="dpassmenu-manual"></a>`dpassmenu`
@@ -261,7 +261,7 @@ dpassmenu [options]
 ##  <a name="directory-location"></a>Directory Location
 If you want to know where the script saves the files, run this command:
 ```
-ppassdb -P
+ppassdb location
 ```
 If you want to know all the possible locations, it is listed below
 
