@@ -137,15 +137,15 @@ ppassdb <operation> [options] <filename>
 					notifications. (Only works on Linux)
 
 ##### Specific for `-E` only:
-- `--qr-code=`\</path/to/image.png\>		Decodes QR Code and encrypts the text.
+- `--qr-code=\</path/to/image.png\>`		Decodes QR Code and encrypts the text.
 					If it is an OTP. It is highly
 					recommended to specify --otp to
 					validate it when encrypting.
 - `--generate`				Auto generates a random string and
 					encrypts it.
-- `--char-length=`\<NUMBER\>			Specify the number of characters to
+- `--char-length=<NUMBER>`			Specify the number of characters to
 					randomly generate.
-- `--char-type=`\<STRING\>			Specify the type of characters to
+- `--char-type=<STRING>`			Specify the type of characters to
 					randomly generate.
 	- `[:graph:]` - All printable characters, except whitespace
 	- `[:alnum:]` - All letters and numbers
@@ -154,7 +154,7 @@ ppassdb <operation> [options] <filename>
 	- `[:upper:]` - Small letters only 
 	- `[:digit:]` - Numbers only
 	For more options, refer to the tr manual
-- `--recipient=`\<GPG ID\>			Encrypts it with a existing user
+- `--recipient=\<GPG ID\>`			Encrypts it with a existing user
 					ID name made 
 					with a key pair. Without this option,
 					it will use symetric encryption
@@ -185,19 +185,59 @@ ppassdb <operation> [options] <filename>
 					--otp option to validate it.
 
 #### Examples
-##### Lists all encrypted file:
+##### Shows the path to all the encrypted files:
 ```
-ppassdb -L
+ppassdb location
+```
+
+##### List all encrypted files:
+```
+ppassdb list
+```
+
+##### List all encrypted files from a specific directory:
+```
+ppassdb list "username"
 ```
 
 ##### Encrypt a text:
 ```
-ppassdb -E -i "username" -f "website.pass" 
+ppassdb add "username/website.pass" 
+```
+
+##### Generate a random password and encrypt it:
+```
+ppassdb add --generate "username/website.pass" 
+```
+
+##### Generate a random password with specific options and encrypts it:
+```
+ppassdb add --generate --char-length=16 --char-type="[:graph:]" "username/website.pass" 
 ```
 
 ##### Decrypts the password and put it into the system clipboard and clears for a period of time:
 ```
-ppassdb -Dc -i "username" -f "website.pass"
+ppassdb open --clear  "username/website.pass"
+```
+
+##### Decrypts the password, show it and doesn't copy to system clipboard:
+```
+ppassdb open --no-clip --show-secret  "username/website.pass"
+```
+
+##### Decodes a QR code and encrypts it (Typically used in 2FA OTP):
+```
+ppassdb add --qr-code="/path/to/qr/code.png" "username/website.otp"
+```
+
+##### Decrypts the password and turns the OTP URL to a code and clears the clipboard for the period of time:
+```
+ppassdb open --otp --clear "username/website.otp"
+```
+
+##### Decrypts the password and encodes OTP URL back to QR code so it can be scanned by authenticators apps:
+```
+ppassdb open --no-clip --show-qr-code "username/website.otp"
 ```
 
 ### <a name="dpassmenu-manual"></a>`dpassmenu`
