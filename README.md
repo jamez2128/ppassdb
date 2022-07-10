@@ -41,7 +41,7 @@ devs.
 	- [Priorities for searching existed directories](#search-directory) 
 	- [Priorities for initializing directories](#initialize-directory) 
 	- [Changing Directory Locations](#change-directory) 
-- [Environmental Variables](#environmental-variabkes)
+- [Environmental Variables](#environmental-variables)
 
 ## Depedencies
 - `gnupg`
@@ -305,7 +305,7 @@ for directories everytime the script runs. You have to suffix an empty directory
 or the directory that has files already made by the script. If you plan to change it,
 make sure to move it to desired directory first before setting an environmental variable.
 
-## <a name=environmental-variables></a> Enviromental Variables
+## <a name="environmental-variables"></a> Enviromental Variables
 Set these varibles for your configurations
 
 - `PPASSDB_HOME` Set the script path to where all the encrypted files are located
