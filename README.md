@@ -147,12 +147,12 @@ ppassdb <operation> [options] <filename>
 					randomly generate.
 - `--char-type=`\<STRING\>			Specify the type of characters to
 					randomly generate.
-	[:graph:] - All printable characters, except whitespace
-	[:alnum:] - All letters and numbers
-	[:alpha:] - Letters only
-	[:lower:] - Capital letters only
-	[:upper:] - Small letters only 
-	[:digit:] - Numbers only
+	- `[:graph:]` - All printable characters, except whitespace
+	- `[:alnum:]` - All letters and numbers
+	- `[:alpha:]` - Letters only
+	- `[:lower:]` - Capital letters only
+	- `[:upper:]` - Small letters only 
+	- `[:digit:]` - Numbers only
 	For more options, refer to the tr manual
 `--recipient=`\<GPG ID\>			Encrypts it with a existing user
 					ID name made 
