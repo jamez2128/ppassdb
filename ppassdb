@@ -423,7 +423,7 @@ _decryption() {
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
 	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && _copyToClipboard
 	[ -n "$htmlOption" ] && _makeHTML
-	[ -n "$showSecretOption" ] && showSecret
+	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 
 }
