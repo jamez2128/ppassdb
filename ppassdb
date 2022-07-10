@@ -37,8 +37,8 @@ Operations:
 
 help, --help				To shows this help message.
 add, insert				For adding and encrypting text files.
-open					For decrypting and opening an encrypted
-					text file.
+open					For decrypting and opening an
+					encrypted text file.
 list, ls				Lists all the added encrypted text
 					files.If a sub directory is not
 					specified, it will list all encrypted
@@ -51,7 +51,8 @@ Options:
 					notifications. (Only works on Linux)
 
 Specific for add only:
---qr-code=\"</path/to/image.png>\"		Decodes QR Code and encrypts the text.
+--qr-code=\"</path/to/image.png>\"	Decodes QR Code and encrypts
+					the text.
 					If it is an OTP. It is highly
 					recommended to specify --otp to
 					validate it when encrypting.
@@ -88,15 +89,18 @@ Specific to both open and add operations:
 					copy it from the web browser.
 --forget				Forgets password after an operation
 					was performed
---otp					For decryption, it converts the OTP
-					URL to OTP code. For encryption, it
-					verifies and tell information about the
-					OTP URL to encrypt so to know whether
-					the URL is valid for code generation.
---show-qr-code				Encodes text to QR code. It is useful
-					to scan OTP URL's to authenticator
-					apps on phones. If you are using it for
-					OTP's, it is recommended to use the
+--otp					For decryption, it converts the
+					OTP URL to OTP code. For
+					encryption, it verifies and
+					tell information about the
+					OTP URL to encrypt so to know
+					whether the URL is valid for
+					code generation.
+--show-qr-code				Encodes text to QR code. It is
+					useful to scan OTP URL's to
+					authenticator apps on phones.
+					If you are using it for OTP's,
+					it is recommended to use the
 					--otp option to validate it.
 
 Examples:
