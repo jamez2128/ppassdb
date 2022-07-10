@@ -475,7 +475,14 @@ while [ -n "$1" ] ; do
 	--multi-line) multiLineOption=" " ; shift ;;
 	--recipient=*) recipient=${1#*=} ; shift ;;
 	--) shift ; break  ;;
-	*) { [ -z "$2" ] && inputFile="$1" ; shift ; } || { echo "$1 is an unknown option" 1>&2 ; exit 1 ; } ;;
+	*)
+		if [ -z "$2" ] ; then
+			inputFile="$1"
+			shift 
+		else
+			echo "$1 is an unknown option" 1>&2 ; exit 1
+		fi
+	;;
 	esac
 done
 [ -z "$inputFile" ] && inputFile="$1"
