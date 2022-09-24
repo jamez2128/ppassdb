@@ -49,7 +49,7 @@ devs.
 ### Optional:
 - `tree`
 - `libnotify`
-- `oauthtool` (For OTP codes)
+- `oathtool` (For OTP codes)
 - `zbar` (For decoding QR Codes)
 - `qrencode`(For generating QR Codes)
 
