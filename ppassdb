@@ -370,34 +370,53 @@ _validateOtp() {
 	otpValidate=0
 
 	case "$otpURL" in
-	otpauth://*) otpType=${1#*//} otpType=${otpType%%/*} ;;
+	otpauth://*)
+		otpType=${1#*//}
+		otpType=${otpType%%/*}
+	;;
 	*) $message "${inputFile#"$PPASSDB_HOME/"}: Not a valid OTP auth URL" 1>&2 ; return 1 ;;
 	esac
 
 	case "$otpURL" in
-	*counter=*) otpCounter=${1#*counter=} otpCounter=${otpCounter%%&*}  ;;
+	*counter=*)
+		otpCounter=${1#*counter=}
+		otpCounter=${otpCounter%%&*}
+	;;
 	*) [ "$otpType" = "hotp" ] && echo "${inputFile#"$PPASSDB_HOME/"}: Not a valid HOTP URL. No counter provided." 1>&2 && otpValidate=1
 	;;
 	esac
 
 	case "$otpURL" in
-	*secret=*) otpSecret=${1#*secret=} otpSecret=${otpSecret%%&*} ;;
+	*secret=*)
+		otpSecret=${1#*secret=}
+		otpSecret=${otpSecret%%&*}
+	;;
 	*) echo "${inputFile#"$PPASSDB_HOME/"} Invalid URL. No secret is provided" 1>&2 ; otpValidate=1 ;;
 	esac
 	
 	case "$otpURL" in 
-	*algorithm=*) otpAlgorithm=${1#*algorithm=} otpAlgorithm=${otpAlgorithm%%&*} ;;
-	*) otpAlgorithm="SHA1" ;;
+	*algorithm=*)
+		otpAlgorithm=${1#*algorithm=}
+		otpAlgorithm=${otpAlgorithm%%&*}
+		otpAlgorithm=$(printf "%s" "$otpAlgorithm" | tr "[:upper:]" "[:lower:]")
+	;;
+	*) otpAlgorithm="sha1" ;;
 	esac
 	
 	case "$otpURL" in 
-	*digits=*) otpDigits=${1#*digits=} otpDigits=${otpDigits%%&*} ;;
+	*digits=*)
+		otpDigits=${1#*digits=}
+		otpDigits=${otpDigits%%&*}
+	;;
 	*) otpDigits=6 ;;
 	esac
 	
 	case "$otpURL" in
-	*period=*) otpPeriod=${1#*period=} otpPeriod=${otpPeriod%%&*} ;;
-	*) otpPeriod=30  ;;
+	*period=*)
+		otpPeriod=${1#*period=}
+		otpPeriod=${otpPeriod%%&*}
+	;;
+	*) otpPeriod=30 ;;
 	esac
 
 	case $otpType in
