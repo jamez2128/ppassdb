@@ -210,7 +210,17 @@ _listdb() {
 		$message "There are no encrypted files added yet" 1>&2
 		exit 1
 	else
-		{ command -v "tree" > /dev/null && tree -aR ; } || ls -AR
+		case "$listMethod" in
+			tree) { ! command -v tree > /dev/null && echo "tree is not installed" 1>&2 && exit 127 ; } || tree -aR ;;
+			ls) ls -AR ;;
+			*)
+				if command -v tree > /dev/null ; then
+					tree -aR
+				else
+					ls -AR
+				fi
+			;;
+		esac
 	fi
 	
 }
@@ -460,6 +470,7 @@ _checkEnvVars() {
 	{ [ -n "$PPASSDB_GENERATE_CHAR_TYPE" ] && typeOfChars="$PPASSDB_GENERATE_CHAR_TYPE" ; } || typeOfChars="$defaultTypeOfChars"
 	[ -n "$PPASSDB_GENERATE_CHAR_LENGTH" ] && { numberOfChars=$(printf "%i" "$PPASSDB_GENERATE_CHAR_LENGTH") ; } || numberOfChars="$defaultNumberOfChars"
 	[ -n "$PPASSDB_RECIPIENT" ] && recipient="$PPASSDB_RECIPIENT"
+	[ -n "$PPASSDB_LISTING_METHOD" ] && listMethod="$PPASSDB_LISTING_METHOD"
 }
 
 # Start of the script
