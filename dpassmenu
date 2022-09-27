@@ -72,6 +72,10 @@ done
 
 # Exit the script if it is not a file
 if [ -f "$prompt" ] ; then
+	# I kinda want an if statement that does nothing
+	# because I ran out of ideas on how to implement this lol
+	# but it works
+	cat /dev/null > /dev/null
 elif [ -f "$prompt.gpg" ] ; then prompt="$prompt.gpg"
 else exit 1
 fi
