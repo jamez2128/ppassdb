@@ -70,10 +70,11 @@ while [ -d "$prompt" ] ; do
 	prompt="$(pwd)/$(printf "%s" "$dmenuFormat" | dmenu -p "$dmenuPromptMessage")" || exit 1
 done
 
-[ -n "$hideExtension" ] && prompt="$prompt.gpg"
-
 # Exit the script if it is not a file
-[ ! -f "$prompt" ] && exit 1
+if [ -f "$prompt" ] ; then
+elif [ -f "$prompt.gpg" ] ; then prompt="$prompt.gpg"
+else exit 1
+fi
 echo "$prompt"
 
 # The decryption part
