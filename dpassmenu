@@ -13,6 +13,8 @@ Options:
 			encrypted text.
 --filter=<PATTERN>	Filters files only with a certain 
 			pattern
+--hide-gpg-extension	Hides .gpg at the end on every
+			files
 --sort			Sort all files and folders together
 
 For full documentation, refer to the README.md file at
@@ -25,6 +27,7 @@ while [ -n "$1" ] ; do
 	--otp) convertToOtpCode="--otp";;
 	--sort) sortOption=" "  ;;
 	--filter=*) filter="${1#*=}"  ;;
+	--hide-gpg-extension) hideExtension=" " ;;
 	--help) helpPage ; exit ;;
 	esac
 	shift
@@ -60,6 +63,7 @@ while [ -d "$prompt" ] ; do
 	prompt=$(pwd)
 	[ -n "$filter" ] && findName="$filter" || findName="*"
 	findFormat=$(find . -maxdepth 1 -type d | sed "1d; s/.*\///g; s/.*$/&\//g" | sort ; find . -maxdepth 1 -name "$findName" ! -type d | sed "s/.*\///g" | sort)
+	[ -n "$hideExtension" ] && findFormat=$(echo "$findFormat" | sed 's/\.gpg$//g')
 	[ -n "$sortOption" ] && findFormat=$(echo "$findFormat" | sort)
 	dmenuFormat=$([ ! "$prompt" = "$ppassdbHOME" ] && echo ".." ; echo "$findFormat")
 	[ "$prompt" = "$ppassdbHOME" ] && dmenuPromptMessage="" || dmenuPromptMessage="${prompt#"$ppassdbHOME/"}"

@@ -256,6 +256,8 @@ dpassmenu [options]
 			encrypted text.
 - `--filter=<PATTERN>`	Filters files only with a certain 
 			pattern
+- `--hide-gpg-extension`	Hides .gpg at the end on every
+			files
 - `--sort`		Sort all files and folders together
 
 ##  <a name="directory-location"></a>Directory Location
