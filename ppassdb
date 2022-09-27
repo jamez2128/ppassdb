@@ -211,15 +211,15 @@ _listdb() {
 		exit 1
 	else
 		case "$listMethod" in
-			tree) { ! command -v tree > /dev/null && echo "tree is not installed" 1>&2 && exit 127 ; } || tree -aR ;;
-			ls) ls -AR ;;
-			*)
-				if command -v tree > /dev/null ; then
-					tree -aR
-				else
-					ls -AR
-				fi
-			;;
+		tree) { ! command -v tree > /dev/null && echo "tree is not installed" 1>&2 && exit 127 ; } || tree -aR ;;
+		ls) ls -AR ;;
+		*)
+			if command -v tree > /dev/null ; then
+				tree -aR
+			else
+				ls -AR
+			fi
+		;;
 		esac
 	fi
 	
@@ -231,8 +231,16 @@ _checkFileName() {
 	[ -n "$inputFile" ] && echo "$inputFile" | grep -q "/\.\.$\|^\.\./\|/\.\./\|^\.\.$\|^/" &&
 		echo "You've attempted to escape the home directory of the script." 1>&2 && exit 1
 	inputFile="$PPASSDB_HOME/$inputFile"
-	[ "$operation" = "encrypt" ] && [ ! -d "${inputFile%/*}" ] && mkdir -p "${inputFile%/*}"
-	[ "$operation" = "decrypt" ] && [ ! -f "$inputFile" ] && { echo "The file does not exist" 1>&2 && exit 1 ; }
+	case "$operation" in
+	encrypt) [ ! -d "${inputFile%/*}" ] && mkdir -p "${inputFile%/*}" ;;
+	decrypt) 
+		if [ -f "$inputFile" ] ; then
+			cat /dev/null > /dev/null
+		elif [ -f "$inputFile.gpg" ] ; then inputFile="$inputFile.gpg"
+		else echo "The file does not exist" 1>&2 && exit 1
+		fi
+	;;
+	esac
 }
 
 _checkOptions() {
@@ -360,7 +368,7 @@ _encryption() {
 		{ [ -n "$multiLineOption" ] && _multiLinerText ; } || _oneLinerText
 	fi
 	# shellcheck disable=SC2086
-	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile" || exit $?
+	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile.gpg" || exit $?
 	textToCopy="$textToEncrypt"
 	if [ -n "$otpOption" ] ; then
 		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
