@@ -70,8 +70,11 @@ while [ -d "$prompt" ] ; do
 	prompt="$(pwd)/$(printf "%s" "$dmenuFormat" | dmenu -p "$dmenuPromptMessage")" || exit 1
 done
 
+[ -n "$hideExtension" ] && prompt="$prompt.gpg"
+
 # Exit the script if it is not a file
 [ ! -f "$prompt" ] && exit 1
+echo "$prompt"
 
 # The decryption part
 "$scriptName" open --notify --clear $convertToOtpCode -- "${prompt#"$ppassdbHOME/"}" || 
