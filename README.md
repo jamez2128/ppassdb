@@ -316,5 +316,5 @@ Set these varibles for your configurations
 - `PPASSDB_GENERATE_CHAR_TYPE` Set the default character when generating a random string when encrypting a file
 - `PPASSDB_GENERATE_CHAR_LENGTH` Set the default length when generating a random string when encrypting a file
 - `PPASSDB_RECIPIENT` Set the default GPG key when adding a file
-- `PPASSDB_LISTING_METHOD` Set the prefered listing command, default is tree and fallback to ls if tree is 
-not found
+- `PPASSDB_LISTING_METHOD` Set the prefered listing command, default is tree and fallback to ls if tree is not found
+- `PPASSDB_SHOW_FILE_EXTENSIONS` Shows the .gpg extensions when listing. If the variable exists, it is true

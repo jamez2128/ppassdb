@@ -197,6 +197,22 @@ _changeDir() { cd "$PPASSDB_HOME" || { echo "${0##*/} home doesn't exist" 1>&2 ;
 
 _showPath() { _changeDir && pwd && exit ; }
 
+_treeList() {
+	if [ -n "$showExtension" ] ; then
+		tree -aR
+	else
+		tree -aR | sed "s/\.gpg$//g"
+	fi
+}
+
+_lsList() {
+	if [ -n "$showExtension" ] ; then
+		ls -AR
+ 	else
+		ls -AR | sed "s/\.gpg$//g"
+	fi
+}
+
 _listdb() {
 	_changeDir
 	if [ -e "$(pwd)/$inputFile" ] ; then
@@ -211,13 +227,20 @@ _listdb() {
 		exit 1
 	else
 		case "$listMethod" in
-		tree) { ! command -v tree > /dev/null && echo "tree is not installed" 1>&2 && exit 127 ; } || tree -aR ;;
-		ls) ls -AR ;;
+		tree)  
+			if ! command -v tree > /dev/null ; then
+				echo "tree is not installed" 1>&2
+				exit 127
+			else
+				_treeList
+			fi
+		;;
+		ls) _lsList ;;
 		*)
 			if command -v tree > /dev/null ; then
-				tree -aR
+				_treeList
 			else
-				ls -AR
+				_lsList
 			fi
 		;;
 		esac
@@ -482,6 +505,7 @@ _checkEnvVars() {
 	[ -n "$PPASSDB_GENERATE_CHAR_LENGTH" ] && { numberOfChars=$(printf "%i" "$PPASSDB_GENERATE_CHAR_LENGTH") ; } || numberOfChars="$defaultNumberOfChars"
 	[ -n "$PPASSDB_RECIPIENT" ] && recipient="$PPASSDB_RECIPIENT"
 	[ -n "$PPASSDB_LISTING_METHOD" ] && listMethod="$PPASSDB_LISTING_METHOD"
+	[ -n "$PPASSDB_SHOW_FILE_EXTENSIONS" ] && showExtension=" "
 }
 
 # Start of the script
