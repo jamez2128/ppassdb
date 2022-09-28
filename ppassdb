@@ -209,6 +209,7 @@ _lsList() {
 	if [ -n "$showExtension" ] ; then
 		ls -AR
  	else
+		# shellcheck disable=SC2012
 		ls -AR | sed "s/\.gpg$//g"
 	fi
 }
