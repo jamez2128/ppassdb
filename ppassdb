@@ -258,13 +258,8 @@ _checkFileName() {
 	case "$operation" in
 	encrypt) [ ! -d "${inputFile%/*}" ] && mkdir -p "${inputFile%/*}" ;;
 	decrypt) 
-		if [ -f "$inputFile" ] ; then
-			# I kinda want a if statement that does nothing
-			# because I ran out of ideas on how to implement this lol
-			# but it works
-			cat /dev/null > /dev/null
-		elif [ -f "$inputFile.gpg" ] ; then inputFile="$inputFile.gpg"
-		else echo "The file does not exist" 1>&2 && exit 1
+		if [ -f "$inputFile.gpg" ] ; then inputFile="$inputFile.gpg"
+		elif [ ! -f "$inputFile" ] ; then echo "The file does not exist" 1>&2 && exit 1
 		fi
 	;;
 	esac
