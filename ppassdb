@@ -80,7 +80,7 @@ Specific for add only:
 Specific to both open and add operations:
 -n, --no-clip				This option will not attempt to
 					copy to clipboard.
--l, --clear				Clears the clipboard after a period
+-c, --clear				Clears the clipboard after a period
 					of time.
 -o, --show-secret			Shows the text. This will return a
 					successful exit status even if the
@@ -526,7 +526,7 @@ while [ -n "$1" ] ; do
 	--otp) otpOption=" " ; shift ;;
 	-n|--no-clip) dontCopyOption=" " ; shift ;;
 	-o|--show-secret) showSecretOption=" " ; shift ;;
-	-l|--clear) clearClipOption=" " ; shift ;;
+	-c|--clear) clearClipOption=" " ; shift ;;
 	--html) htmlOption=" " ; shift ;;
 	-f|--forget) forgetImmediatelyOption=" " ; shift ;;
 	-g|--generate) generateOption=" " ; shift ;;
