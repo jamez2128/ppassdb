@@ -8,6 +8,12 @@ defaultDeleteHTMLTime=30
 ## Number of characters to number randomly generate
 defaultNumberOfChars=16
 
+## Uncomment the line below to show the .gpg extension when listing
+# showExtension=" "
+
+## Uncomment the line below to always clear the clipboard after decryption
+# clearClipOption=" "
+
 ## What type of characters to randomly generate
 ## [:graph:] - All printable characters, except whitespace
 ## [:alnum:] - All letters and numbers
