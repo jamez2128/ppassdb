@@ -165,7 +165,7 @@ ppassdb <operation> [options] <filename>
 ##### Specific to both `-D` and `-E`:
 - `-n`, `--no-clip`				This option will not attempt to
 					copy to clipboard.
-- `-l`, `--clear`				Clears the clipboard after a period
+- `-c`, `--clear`				Clears the clipboard after a period
 					of time.
 - `-o`, `--show-secret`			Shows the text. This will return a
 					successful exit status even if the
