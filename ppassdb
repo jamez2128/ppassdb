@@ -30,6 +30,10 @@ defaultTypeOfChars="[:graph:]"
 ## Uncomment to ask the password everytime after previous encryption
 #askPassEverytime=" "
 
+## Override some settings if a config file exists
+# shellcheck source=/dev/null
+[ -f "$PPASSDB_CONFIG_FILE" ] && . "$PPASSDB_CONFIG_FILE"
+
 #========================================================================#
 
 _usage() { echo "Usage: ${0##*/} <operation> [options] <filename>" 1>&2 ; }
@@ -51,6 +55,7 @@ list, ls				Lists all the added encrypted text
 					files from all subdirectories.
 location, pwd				Outputs the path to where all the
 					encrypted files will be stored.
+generate-config				Outputs a template for a config file
 
 Options:
 --notify				Pushes feedback messages to
@@ -109,6 +114,10 @@ Specific to both open and add operations:
 					it is recommended to use the
 					--otp option to validate it.
 
+Specific to generate-config:
+--clean-config				Removes the comments of the
+					generated config file
+
 Examples:
 
 Shows the path to all the encrypted files:
@@ -149,6 +158,36 @@ ${0##*/} open --no-clip --show-qr-code \"username/website.otp\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
+}
+
+_genConfig() {
+		echo "defaultClearClipboardTime=15
+defaultDeleteHTMLTime=30
+
+## Number of characters to number randomly generate
+defaultNumberOfChars=16
+
+## Uncomment the line below to show the .gpg extension when listing
+# showExtension=\" \"
+
+## Uncomment the line below to always clear the clipboard after decryption
+# clearClipOption=\" \"
+
+## What type of characters to randomly generate
+## [:graph:] - All printable characters, except whitespace
+## [:alnum:] - All letters and numbers
+## [:alpha:] - Letters only
+## [:lower:] - Capital letters only
+## [:upper:] - Small letters only
+## [:digit:] - Numbers only
+## For more options, refer to the tr manual
+defaultTypeOfChars=\"[:graph:]\"
+
+##Uncomment to override the script's home directory
+#PPASSDB_HOME=\"./.${0##*/}\" 
+
+## Uncomment to ask the password everytime after previous encryption
+#askPassEverytime=\" \""
 }
 
 _checkDependecies() {
@@ -521,6 +560,7 @@ case "$1" in
 	list|ls) operation="list";;
 	location|pwd) operation="path" ;;
 	open) operation="decrypt" ;;
+	generate-config) operation="generate-config" ;;
 	*) echo "No operation specified" 1>&2 ; _noOperation ; exit 1;;
 esac
 shift
@@ -541,6 +581,7 @@ while [ -n "$1" ] ; do
 	--notify) command -v notify-send > /dev/null && message="notify-send" ; shift ;;
 	--multi-line) multiLineOption=" " ; shift ;;
 	--recipient=*) recipient=${1#*=} ; shift ;;
+	--clean-config) cleanConfig=" "  ; shift ;;
 	--) shift ; break  ;;
 	*)
 		if [ -z "$2" ] ; then
@@ -560,5 +601,12 @@ decrypt) _decryption ;;
 encrypt) _encryption "$gpgEncryptOptions" ;;
 list) _listdb ;;
 path) _showPath ;;
+generate-config)
+	if [ -n "$cleanConfig" ] ; then
+		_genConfig | sed "/^##/ d ; /^$/ d"
+	else
+		_genConfig
+	fi
+;;
 esac
 exit 0

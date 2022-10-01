@@ -132,12 +132,13 @@ ppassdb <operation> [options] <filename>
 					files from all subdirectories.
 - `location`, `pwd`				Outputs the path to where all the
 					encrypted files will be stored.
+- `generate-config`				Outputs a template for a config file
 
 #### <a name="Options-ppassdb"></a>Options
 - `--notify`				Pushes feedback messages to
 					notifications. (Only works on Linux)
 
-##### Specific for `-E` only:
+##### Specific for `add` only:
 - `--qr-code=</path/to/image.png>`		Decodes QR Code and encrypts the text.
 					If it is an OTP. It is highly
 					recommended to specify --otp to
@@ -162,7 +163,7 @@ ppassdb <operation> [options] <filename>
 					instead.
 - `--multi-line`				Encrypts a multi-line text instead
 					of a single line.
-##### Specific to both `-D` and `-E`:
+##### Specific to both `open` and `add`:
 - `-n`, `--no-clip`				This option will not attempt to
 					copy to clipboard.
 - `-c`, `--clear`				Clears the clipboard after a period
@@ -184,6 +185,10 @@ ppassdb <operation> [options] <filename>
 					apps on phones. If you are using it for
 					OTP's, it is recommended to use the
 					--otp option to validate it.
+
+ #### Specific to `generate-config`:
+ `--clean-config`			Removes the comments of the
+					generated config file
 
 #### <a name=ppassdb-examples></a> Examples
 ##### Shows the path to all the encrypted files:
@@ -310,6 +315,7 @@ make sure to move it to desired directory first before setting an environmental 
 ## <a name="environmental-variables"></a> Enviromental Variables
 Set these varibles for your configurations
 
+- `PPASSDB_CONFIG_FILE` Sets the config file location
 - `PPASSDB_HOME` Set the script path to where all the encrypted files are located
 - `PPASSDB_CLEAR_TIME` Set how long it waits in seconds before clearing the clipboard
 - `PPASSDB_DELETE_HTML_TIME` Set how long it waits in seconds before deleting the temporary HTML file
