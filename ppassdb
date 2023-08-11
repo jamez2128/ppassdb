@@ -96,8 +96,6 @@ Specific to both open and add operations:
 -o, --show-secret			Shows the text. This will return a
 					successful exit status even if the
 					clipboard failed.
---html					Puts text to the generated html to 
-					copy it from the web browser.
 -f, --forget				Forgets password after an operation
 					was performed
 --otp					For decryption, it converts the
@@ -330,58 +328,6 @@ _checkOS() {
 	fi
 }
 
-#A workaround if the script failed to take care of the clipboard
-#Good Alternative if you don't wanna use the -s option
-_makeHTML() {
-	escapeText=$(printf "%s" "$textToCopy" | sed 's/[\\`]/\\&/g')
-	htmlPath=$(mktemp -u).html
-	fileNameOnly=${htmlPath##*/}
-	if [ "$oS" = "Android" ] && [ -w "/storage/emulated/0" ] ; then
-		htmlPath="/storage/emulated/0/$fileNameOnly}"
-	elif [ "$oS" = "Android" ] ; then
-		unset htmlPath
-		echo "You don't have write permissions in Termux" 1>&2
-		[ -z "$showSecretOption" ] && exit 1
-	fi
-	[ -n "$htmlPath" ] && 
-	{
-		cat << EOF
-<html>
-	<head>
-	<title> ${inputFile#"$PPASSDB_HOME/"} | ${0##*/} </title>
-	<script>
-		var isClear = document.getElementById("clearClipBox");
-		function copyToClipboard() { 
-			navigator.clipboard.writeText(\`$escapeText\`); 
-		}
-		function clearClipboard() {
-			navigator.clipboard.writeText(""); 
-		}
-	</script>
-</head>
-<body>
-	<p>
-		<button onclick=copyToClipboard()>Copy to Clipboard</button>
-		<br>
-		<button onclick=clearClipboard()>Clear Clipboard </button>
-	</p>
-</body>
-</html>
-EOF
-	} > "$htmlPath"
-	if [ -n "$htmlPath" ] ; then
-		case "$oS" in
-		"Windows") start "$htmlPath" ;;
-		"GNU/Linux") command -v xdg-open > /dev/null && xdg-open "$htmlPath" > /dev/null 2>&1 ;;
-		*) command -v open > /dev/null && open "$htmlPath" > /dev/null 2>&1 ;;
-		esac
-		echo "Your decrypted file is in file://$htmlPath" 1>&2
-		[ "$oS" = "Android" ] && echo "It will be in the your Internal Storage" 1>&2
-		echo "This file will be deleted in $deleteHTMLTime seconds" 1>&2
-		sleep "$deleteHTMLTime" && [ -f "$htmlPath" ] && rm "$htmlPath" &
-	fi
-}
-
 _showSecret() { echo "$textToCopy" ; }
 
 _clearClipboard() {
@@ -406,7 +352,7 @@ _copyToClipboard() {
 		
 	else
 		$message "Could not find any clipboards" 1>&2
-		[ -z "$showSecretOption" ] && [ -z "$htmlOption" ] && exit 127
+		exit 127
 	fi
 }
 
@@ -440,8 +386,7 @@ _encryption() {
 	if [ -n "$otpOption" ] ; then
 		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
 	fi
-	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } && [ -z "$htmlOption" ] && _copyToClipboard
-	[ -n "$htmlOption" ] && _makeHTML
+	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } &&  _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 }
@@ -529,8 +474,7 @@ _decryption() {
 		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
-	[ -z "$dontCopyOption" ] && [ -z "$htmlOption" ] && _copyToClipboard
-	[ -n "$htmlOption" ] && _makeHTML
+	[ -z "$dontCopyOption" ] && _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 
@@ -573,7 +517,6 @@ while [ -n "$1" ] ; do
 	-n|--no-clip) dontCopyOption=" " ; shift ;;
 	-o|--show-secret) showSecretOption=" " ; shift ;;
 	-c|--clear) clearClipOption=" " ; shift ;;
-	--html) htmlOption=" " ; shift ;;
 	-f|--forget) forgetImmediatelyOption=" " ; shift ;;
 	-g|--generate) generateOption=" " ; shift ;;
 	--char-length=*) numberOfChars=$(printf "%i" "${1#*=}") || exit $? ; shift ;;
