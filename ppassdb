@@ -384,7 +384,7 @@ _encryption() {
 	if [ -n "$otpOption" ] ; then
 		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
 	fi
-	[ -z "$showSecretOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } &&  _copyToClipboard
+	[ -z "$showSecretOption" ] && { [ -n "$generateOption" ] || [ -z "$imageSource" ] ; } &&  _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 }
@@ -472,7 +472,7 @@ _decryption() {
 		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
-	[ -z "$showSecretOption" ] && _copyToClipboard
+	[ -z "$showSecretOption" ] && [ -z "$qrCodeOption" ] && _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 
