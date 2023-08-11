@@ -6,8 +6,6 @@
 - Designed to work on most Operating Systems including Android and Windows.
 - It encrypts text files and encrypts them indivdually or with a key pair .
 - It mainly puts the encrypted text to clipboard after decryption.
-- If the script doesn't support the clipboard, there is an option to
-use the web browser instead.
 
 # `dpassmenu`
 - A simple dmenu script that decrypts files to clipboard with
@@ -171,8 +169,6 @@ ppassdb <operation> [options] <filename>
 - `-o`, `--show-secret`			Shows the text. This will return a
 					successful exit status even if the
 					clipboard failed.
-- `--html`					Puts text to the generated html to 
-					copy it from the web browser.
 - `-f`, `--forget`				Forgets password after an operation
 					was performed
 - `--otp`					For decryption, it converts the OTP
