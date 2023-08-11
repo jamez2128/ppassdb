@@ -138,9 +138,7 @@ ppassdb <operation> [options] <filename>
 
 ##### Specific for `add` only:
 - `--qr-code=</path/to/image.png>`		Decodes QR Code and encrypts the text.
-					If it is an OTP. It is highly
-					recommended to specify --otp to
-					validate it when encrypting.
+					If it is an OTP.
 - `--generate`				Auto generates a random string and
 					encrypts it.
 - `--char-length=<NUMBER>`			Specify the number of characters to
