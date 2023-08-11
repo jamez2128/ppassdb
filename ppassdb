@@ -89,8 +89,6 @@ Specific for add only:
 					of a single line.
 
 Specific to both open and add operations:
--n, --no-clip				This option will not attempt to
-					copy to clipboard.
 -c, --clear				Clears the clipboard after a period
 					of time.
 -o, --show-secret			Shows the text. This will return a
@@ -140,8 +138,8 @@ Decrypts the password and put it into the system clipboard and clears for a
 period of time:
 ${0##*/} open --clear  \"username/website.pass\"
 
-Decrypts the password, show it and doesn't copy to system clipboard:
-${0##*/} open --no-clip --show-secret  \"username/website.pass\"
+Decrypts the password, outputs to stdout
+${0##*/} open --show-secret  \"username/website.pass\"
 
 Decodes a QR code and encrypts it (Typically used in 2FA OTP):
 ${0##*/} add --qr-code=\"/path/to/qr/code.png\" \"username/website.otp\"
@@ -152,7 +150,7 @@ ${0##*/} open --otp --clear \"username/website.otp\"
 
 Decrypts the password and encodes OTP URL back to QR code
 so it can be scanned by authenticators apps:
-${0##*/} open --no-clip --show-qr-code \"username/website.otp\"
+${0##*/} open --show-qr-code \"username/website.otp\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
@@ -386,7 +384,7 @@ _encryption() {
 	if [ -n "$otpOption" ] ; then
 		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
 	fi
-	[ -z "$dontCopyOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } &&  _copyToClipboard
+	[ -z "$showSecretOption" ] && { [ -n "$generateOption" ] || [ -n "$imageSource" ] ; } &&  _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 }
@@ -474,7 +472,7 @@ _decryption() {
 		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
-	[ -z "$dontCopyOption" ] && _copyToClipboard
+	[ -z "$showSecretOption" ] && _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
 
@@ -514,7 +512,6 @@ while [ -n "$1" ] ; do
 	--qr-code=*) imageSource=${1#*=}  ; shift ;;
 	--show-qr-code) qrCodeOption=" " ; shift ;;
 	--otp) otpOption=" " ; shift ;;
-	-n|--no-clip) dontCopyOption=" " ; shift ;;
 	-o|--show-secret) showSecretOption=" " ; shift ;;
 	-c|--clear) clearClipOption=" " ; shift ;;
 	-f|--forget) forgetImmediatelyOption=" " ; shift ;;
