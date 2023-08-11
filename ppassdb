@@ -64,9 +64,6 @@ Options:
 Specific for add only:
 --qr-code=\"</path/to/image.png>\"	Decodes QR Code and encrypts
 					the text.
-					If it is an OTP. It is highly
-					recommended to specify --otp to
-					validate it when encrypting.
 --generate				Auto generates a random string and
 					encrypts it.
 --char-length=<NUMBER>			Specify the number of characters to
@@ -381,9 +378,6 @@ _encryption() {
 	# shellcheck disable=SC2086
 	printf "%s" "$textToEncrypt" | $gnupg $1 -o "$inputFile.gpg" || exit $?
 	textToCopy="$textToEncrypt"
-	if [ -n "$otpOption" ] ; then
-		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL Validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL provided may be invalid" 1>&2 
-	fi
 	[ -z "$showSecretOption" ] && { [ -n "$generateOption" ] || [ -z "$imageSource" ] ; } &&  _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
 	[ -n "$qrCodeOption" ] && _generateQrCode "$textToCopy"
