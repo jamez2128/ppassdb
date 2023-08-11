@@ -222,9 +222,9 @@ ppassdb add --generate --char-length=16 --char-type="[:graph:]" "username/websit
 ppassdb open --clear  "username/website.pass"
 ```
 
-##### Decrypts the password, show it and doesn't copy to system clipboard:
+##### Decrypts the password, outputs to stdout
 ```
-ppassdb open --no-clip --show-secret  "username/website.pass"
+ppassdb open --show-secret  "username/website.pass"
 ```
 
 ##### Decodes a QR code and encrypts it (Typically used in 2FA OTP):
@@ -239,7 +239,7 @@ ppassdb open --otp --clear "username/website.otp"
 
 ##### Decrypts the password and encodes OTP URL back to QR code so it can be scanned by authenticators apps:
 ```
-ppassdb open --no-clip --show-qr-code "username/website.otp"
+ppassdb open  --show-qr-code "username/website.otp"
 ```
 
 ### <a name="dpassmenu-manual"></a>`dpassmenu`
