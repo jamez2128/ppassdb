@@ -3,7 +3,6 @@
 #========================Global Configurations===========================#
 
 defaultClearClipboardTime=15
-defaultDeleteHTMLTime=30
 
 ## Number of characters to number randomly generate
 defaultNumberOfChars=16
@@ -158,7 +157,6 @@ https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
 
 _genConfig() {
 		echo "defaultClearClipboardTime=15
-defaultDeleteHTMLTime=30
 
 ## Number of characters to number randomly generate
 defaultNumberOfChars=16
@@ -483,7 +481,6 @@ _checkEnvVars() {
 	else _searchHome
 	fi
 	{ [ -n "$PPASSDB_CLEAR_TIME" ] && clearClipboardTime=$(printf "%i" "$PPASSDB_CLEAR_TIME") ; } || clearClipboardTime="$defaultClearClipboardTime"
-	{ [ -n "$PPASSDB_DELETE_HTML_TIME" ] && deleteHTMLTime="$PPASSDB_DELETE_HTML_TIME" ; } || deleteHTMLTime="$defaultDeleteHTMLTime"
 	{ [ -n "$PPASSDB_GENERATE_CHAR_TYPE" ] && typeOfChars="$PPASSDB_GENERATE_CHAR_TYPE" ; } || typeOfChars="$defaultTypeOfChars"
 	[ -n "$PPASSDB_GENERATE_CHAR_LENGTH" ] && { numberOfChars=$(printf "%i" "$PPASSDB_GENERATE_CHAR_LENGTH") ; } || numberOfChars="$defaultNumberOfChars"
 	[ -n "$PPASSDB_RECIPIENT" ] && recipient="$PPASSDB_RECIPIENT"
