@@ -90,9 +90,7 @@ Specific for add only:
 Specific to both open and add operations:
 -c, --clear				Clears the clipboard after a period
 					of time.
--o, --show-secret			Shows the text. This will return a
-					successful exit status even if the
-					clipboard failed.
+-o, --show-secret			Outputs the secret to stdout.
 -f, --forget				Forgets password after an operation
 					was performed
 --otp					For decryption, it converts the
@@ -105,9 +103,6 @@ Specific to both open and add operations:
 --show-qr-code				Encodes text to QR code. It is
 					useful to scan OTP URL's to
 					authenticator apps on phones.
-					If you are using it for OTP's,
-					it is recommended to use the
-					--otp option to validate it.
 
 Specific to generate-config:
 --clean-config				Removes the comments of the
@@ -125,31 +120,31 @@ List all encrypted files from a specific directory:
 ${0##*/} list \"username\"
 
 Encrypt a text:
-${0##*/} add \"username/website.pass\" 
+${0##*/} add \"username/website-pass.gpg\" 
 
 Generate a random password and encrypt it:
-${0##*/} add --generate \"username/website.pass\" 
+${0##*/} add --generate \"username/website-pass.gpg\" 
 
 Generate a random password with specific options and encrypts it:
-${0##*/} add --generate --char-length=16 --char-type=\"[:graph:]\" \"username/website.pass\" 
+${0##*/} add --generate --char-length=16 --char-type=\"[:graph:]\" \"username/website-pass.gpg\" 
 
 Decrypts the password and put it into the system clipboard and clears for a 
 period of time:
-${0##*/} open --clear  \"username/website.pass\"
+${0##*/} open --clear  \"username/website-pass.gpg\"
 
 Decrypts the password, outputs to stdout
-${0##*/} open --show-secret  \"username/website.pass\"
+${0##*/} open --show-secret  \"username/website-pass.gpg\"
 
 Decodes a QR code and encrypts it (Typically used in 2FA OTP):
-${0##*/} add --qr-code=\"/path/to/qr/code.png\" \"username/website.otp\"
+${0##*/} add --qr-code=\"/path/to/qr/code.png\" \"username/website-otp.gpg\"
 
 Decrypts the password and turns the OTP URL to a code and clears the
 clipboard for the period of time:
-${0##*/} open --otp --clear \"username/website.otp\"
+${0##*/} open --otp --clear \"username/website-otp.gpg\"
 
 Decrypts the password and encodes OTP URL back to QR code
 so it can be scanned by authenticators apps:
-${0##*/} open --show-qr-code \"username/website.otp\"
+${0##*/} open --show-qr-code \"username/website-otp.gpg\"
 
 For full documentation, refer to the README.md file at
 https://github.com/jamez2128/ppassdb/blob/master/README.md" 1>&2
@@ -463,9 +458,7 @@ _decryption() {
 	_checkFileName
 	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy=$($gnupg -d "$inputFile") || exit $?
-	if [ -n "$otpOption" ] && [ -z "$qrCodeOption" ]  ; then
-		textToCopy=$(_otpCode "$(echo "$textToCopy" | head -n 1)") || exit $?
-	fi
+	[ -n "$otpOption" ] && { textToCopy=$(_otpCode "$(echo "$textToCopy" | head -n 1)") || exit $? ; }
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
 	[ -z "$showSecretOption" ] && _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
