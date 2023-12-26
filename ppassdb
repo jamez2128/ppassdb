@@ -465,8 +465,6 @@ _decryption() {
 	textToCopy=$($gnupg -d "$inputFile") || exit $?
 	if [ -n "$otpOption" ] && [ -z "$qrCodeOption" ]  ; then
 		textToCopy=$(_otpCode "$(echo "$textToCopy" | head -n 1)") || exit $?
-	elif [ -n "$qrCodeOption" ] && [ -n "$otpOption" ] ; then
-		_validateOtp "$textToCopy" && echo "${inputFile#"$PPASSDB_HOME/"}: OTP URL validated" 1>&2 || echo "${inputFile#"$PPASSDB_HOME/"}: This QR code may not work on autheticator apps" 1>&2
 	fi
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
 	[ -z "$showSecretOption" ] && _copyToClipboard
