@@ -138,8 +138,6 @@ ppassdb <operation> [options] <filename>
 
 ##### Specific for `add` only:
 - `--qr-code=</path/to/image.png>`		Decodes QR Code and encrypts the text.
-					If it is an OTP. It is highly
-					recommended to specify --otp to
 					validate it when encrypting.
 - `--generate`				Auto generates a random string and
 					encrypts it.
@@ -166,9 +164,7 @@ ppassdb <operation> [options] <filename>
 					copy to clipboard.
 - `-c`, `--clear`				Clears the clipboard after a period
 					of time.
-- `-o`, `--show-secret`			Shows the text. This will return a
-					successful exit status even if the
-					clipboard failed.
+- `-o`, `--show-secret`			Shows the text.
 - `-f`, `--forget`				Forgets password after an operation
 					was performed
 - `--otp`					For decryption, it converts the OTP
@@ -178,9 +174,7 @@ ppassdb <operation> [options] <filename>
 					the URL is valid for code generation.
 - `--show-qr-code`				Encodes text to QR code. It is useful
 					to scan OTP URL's to authenticator
-					apps on phones. If you are using it for
-					OTP's, it is recommended to use the
-					--otp option to validate it.
+					apps on phones. 
 
  #### Specific to `generate-config`:
  `--clean-config`			Removes the comments of the

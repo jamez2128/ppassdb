@@ -291,7 +291,7 @@ _checkFileName() {
 	case "$operation" in
 	encrypt) [ ! -d "${inputFile%/*}" ] && mkdir -p "${inputFile%/*}" ;;
 	decrypt) 
-		if [ -f "$inputFile.gpg" ] ; then inputFile="$inputFile.gpg"
+		lif [ -f "$inputFile.gpg" ] ; then inputFile="$inputFile.gpg"
 		elif [ ! -f "$inputFile" ] ; then echo "The file does not exist" 1>&2 && exit 1
 		fi
 	;;
