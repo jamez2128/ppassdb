@@ -185,7 +185,6 @@ defaultTypeOfChars=\"[:graph:]\"
 }
 
 _checkDependecies() {
-	{ command -v gpg2 > /dev/null && gnupg="gpg2" ; } ||
 	{ command -v gpg > /dev/null && gnupg="gpg" ; } ||
 	{ echo "gnupg is not installed" 1>&2 && exit 127 ; }
 	{ [ -n "$otpOption" ] && [ "$operation" = "decrypt" ] && ! command -v oathtool > /dev/null ; } && { echo "oathtool is not installed. It is required to generate OTP codes." 1>&2 ; exit 127 ; }
