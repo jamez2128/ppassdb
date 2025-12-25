@@ -138,11 +138,7 @@ ppassdb <operation> [options] <filename>
 
 ##### Specific for `add` only:
 - `--qr-code=</path/to/image.png>`		Decodes QR Code and encrypts the text.
-<<<<<<< HEAD
 					validate it when encrypting.
-=======
-					If it is an OTP.
->>>>>>> f8e055c693c72e8c7686f058c4ec8d11ec6a8ec6
 - `--generate`				Auto generates a random string and
 					encrypts it.
 - `--char-length=<NUMBER>`			Specify the number of characters to
@@ -161,12 +157,11 @@ ppassdb <operation> [options] <filename>
 					with a key pair. Without this option,
 					it will use symetric encryption
 					instead.
-
+- `--multi-line`				Encrypts a multi-line text instead
+					of a single line.
 ##### Specific to both `open` and `add`:
 - `-n`, `--no-clip`				This option will not attempt to
 					copy to clipboard.
-- `--multi-line`				Encrypts a multi-line text instead
-					of a single line.
 - `-c`, `--clear`				Clears the clipboard after a period
 					of time.
 - `-o`, `--show-secret`			Shows the text.
