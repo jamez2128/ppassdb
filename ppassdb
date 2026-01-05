@@ -381,7 +381,8 @@ _generateQrCode() {
 }
 
 _validateOtp() {
-	otpURL=$(echo "$1" | head -n 1)
+	otpURL=$(echo "$1" | tr -d '\r' | grep '^otpauth://' | head -n 1)
+	echo "$otpURL" 1>&2
 	otpValidate=0
 
 	case "$otpURL" in
@@ -453,7 +454,7 @@ _decryption() {
 	_checkFileName
 	[ -n "$askPassEverytime" ] && printf "RELOADAGENT" | gpg-connect-agent
 	textToCopy=$($gnupg -d "$inputFile") || exit $?
-	[ -n "$otpOption" ] && { textToCopy=$(_otpCode "$(echo "$textToCopy" | head -n 1)") || exit $? ; }
+	[ -n "$otpOption" ] && { textToCopy=$(_otpCode "$textToCopy") || exit $? ; }
 	[ -n "$forgetImmediatelyOption" ] && printf "RELOADAGENT" | gpg-connect-agent > /dev/null
 	[ -z "$showSecretOption" ] && [ -z "$qrCodeOption" ] && _copyToClipboard
 	[ -n "$showSecretOption" ] && _showSecret
