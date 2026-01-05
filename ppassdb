@@ -382,7 +382,6 @@ _generateQrCode() {
 
 _validateOtp() {
 	otpURL=$(echo "$1" | tr -d '\r' | grep '^otpauth://' | head -n 1)
-	echo "$otpURL" 1>&2
 	otpValidate=0
 
 	case "$otpURL" in
